@@ -13,11 +13,13 @@ Data taken from [Kaggle coding competition on smoker prediction](https://www.kag
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import matplotlib.pyplot as plt
 ```
 
 
 ```{python, echo=FALSE}
 #| echo: false
+pd.set_option("display.precision", 2)
 data = pd.read_csv('Smokers/train.csv', index_col=None)
 ```
 
@@ -25,43 +27,62 @@ data = pd.read_csv('Smokers/train.csv', index_col=None)
 #| echo: false
 data.head()
 ```
-```{python}
-#| echo: false
-data.info()
-```
+
 ```{python}
 #| echo: false
 data.describe()
 ```
 
-## Data
-What is in dataset: 
+```{python}
+#| echo: false
+idx = ["Both hearing", "One deaf", "Both deaf"]
+hear = data.loc[:, ["hearing(left)", "hearing(right)"]]
+hearing = []
+for index, row in hear.iterrows():
+    hearing.append(idx[row.iloc[0] + row.iloc[1] - 2])
+data.loc[:, "hearing"] = hearing
+```
 
-1. Age  
-2. Height [cm]  
-3. Weight [kg]  
-4. Waist [cm]  
-5. Eyesight [left]  
-6. Eyesight [right]  
-7. Hearing [left]  
-8. Hearing [right]  
-9. Systolic  
-10. Relaxation  
-11. Fasting blood sugar  
-12. Cholesterol  
-13. Triglyceride  
-14. HDL  
-15. LDL  
-16. Hemoglobin  
-17. Urine protein  
-18. Serum creatinine  
-19. AST  
-20. ALT  
-21. Gtp  
-22. Dental caries  
-23. Smoking  
+```{python}
+#| echo: false
+l_numeric = ["age", "height(cm)", "weight(kg)", "waist(cm)", "eyesight(left)", "eyesight(right)", "systolic", "relaxation", "fasting blood sugar", "Cholesterol", "triglyceride", "HDL", "LDL", "hemoglobin", "serum creatinine", "AST", "ALT", "Gtp"]
+numeric = data.loc[:, l_numeric]
+l_categorical = ["hearing(left)", "hearing(right)", "dental caries", "smoking"]
+categorical = data.loc[:, l_categorical]
+```
+
+## Data
+
+Dataset contains both numeric and categorical data.  
+
+Numeric data are: age, height, waist, eyesight, systolic and relaxed blood pressure, fasting blood sugar, cholesterol, triglyceride, serum creatinine, AST, ALT, Gtp  
+
+Categorical data are: hearing, dental caries, smoking (target variable)
+
+Where does urine protein go?
+
+### Heatmap
+
+```{python}
+#| echo: false
+plt.figure(figsize=(8, 6))
+corr = numeric.corr()
+sns.heatmap(corr, cmap="Spectral")
+plt.show()
+```
 
 ### Age
+```{python}
+#| echo: false
+sns.histplot(data, x="age", binwidth=5).set(xlabel="Age")
+plt.show()
+```
+```{python}
+#| echo: false
+sns.boxplot(data, x="hearing", y="age").set(xlabel="", ylabel="Age")
+plt.show()
+```
+
 
 ### Weight
 

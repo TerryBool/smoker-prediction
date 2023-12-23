@@ -83,7 +83,31 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
    
   <ul>
   <li><a href="#markdown" id="toc-markdown" class="nav-link active" data-scroll-target="#markdown">Markdown</a></li>
-  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a></li>
+  <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a>
+  <ul class="collapse">
+  <li><a href="#heatmap" id="toc-heatmap" class="nav-link" data-scroll-target="#heatmap">Heatmap</a></li>
+  <li><a href="#age" id="toc-age" class="nav-link" data-scroll-target="#age">Age</a></li>
+  <li><a href="#weight" id="toc-weight" class="nav-link" data-scroll-target="#weight">Weight</a></li>
+  <li><a href="#height" id="toc-height" class="nav-link" data-scroll-target="#height">Height</a></li>
+  <li><a href="#waist" id="toc-waist" class="nav-link" data-scroll-target="#waist">Waist</a></li>
+  <li><a href="#eyesight-left-right" id="toc-eyesight-left-right" class="nav-link" data-scroll-target="#eyesight-left-right">Eyesight [left, right]</a></li>
+  <li><a href="#hearing-left-right" id="toc-hearing-left-right" class="nav-link" data-scroll-target="#hearing-left-right">Hearing [left, right]</a></li>
+  <li><a href="#systolic" id="toc-systolic" class="nav-link" data-scroll-target="#systolic">Systolic</a></li>
+  <li><a href="#relaxation" id="toc-relaxation" class="nav-link" data-scroll-target="#relaxation">Relaxation</a></li>
+  <li><a href="#fasting-blood-sugar" id="toc-fasting-blood-sugar" class="nav-link" data-scroll-target="#fasting-blood-sugar">Fasting blood sugar</a></li>
+  <li><a href="#cholesterol" id="toc-cholesterol" class="nav-link" data-scroll-target="#cholesterol">Cholesterol</a></li>
+  <li><a href="#triglyceride" id="toc-triglyceride" class="nav-link" data-scroll-target="#triglyceride">Triglyceride</a></li>
+  <li><a href="#hdl" id="toc-hdl" class="nav-link" data-scroll-target="#hdl">HDL</a></li>
+  <li><a href="#ldl" id="toc-ldl" class="nav-link" data-scroll-target="#ldl">LDL</a></li>
+  <li><a href="#hemoglobin" id="toc-hemoglobin" class="nav-link" data-scroll-target="#hemoglobin">Hemoglobin</a></li>
+  <li><a href="#urine-protein" id="toc-urine-protein" class="nav-link" data-scroll-target="#urine-protein">Urine protein</a></li>
+  <li><a href="#serum-creatinine" id="toc-serum-creatinine" class="nav-link" data-scroll-target="#serum-creatinine">Serum creatinine</a></li>
+  <li><a href="#ast" id="toc-ast" class="nav-link" data-scroll-target="#ast">AST</a></li>
+  <li><a href="#alt" id="toc-alt" class="nav-link" data-scroll-target="#alt">ALT</a></li>
+  <li><a href="#gtp" id="toc-gtp" class="nav-link" data-scroll-target="#gtp">Gtp</a></li>
+  <li><a href="#dental-caries" id="toc-dental-caries" class="nav-link" data-scroll-target="#dental-caries">Dental caries</a></li>
+  <li><a href="#smoking" id="toc-smoking" class="nav-link" data-scroll-target="#smoking">Smoking</a></li>
+  </ul></li>
   </ul>
 </nav>
 </div>
@@ -111,10 +135,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Data taken from <a href="https://www.kaggle.com/competitions/playground-series-s3e24/overview">Kaggle coding competition on smoker prediction</a></p>
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="3">
-<div class="cell-output cell-output-display" data-execution_count="23">
+<div class="cell-output cell-output-display" data-execution_count="3">
 <div>
 
 
@@ -274,42 +300,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 <div class="cell" data-execution_count="4">
-<div class="cell-output cell-output-stdout">
-<pre><code>&lt;class 'pandas.core.frame.DataFrame'&gt;
-RangeIndex: 159256 entries, 0 to 159255
-Data columns (total 24 columns):
- #   Column               Non-Null Count   Dtype  
----  ------               --------------   -----  
- 0   id                   159256 non-null  int64  
- 1   age                  159256 non-null  int64  
- 2   height(cm)           159256 non-null  int64  
- 3   weight(kg)           159256 non-null  int64  
- 4   waist(cm)            159256 non-null  float64
- 5   eyesight(left)       159256 non-null  float64
- 6   eyesight(right)      159256 non-null  float64
- 7   hearing(left)        159256 non-null  int64  
- 8   hearing(right)       159256 non-null  int64  
- 9   systolic             159256 non-null  int64  
- 10  relaxation           159256 non-null  int64  
- 11  fasting blood sugar  159256 non-null  int64  
- 12  Cholesterol          159256 non-null  int64  
- 13  triglyceride         159256 non-null  int64  
- 14  HDL                  159256 non-null  int64  
- 15  LDL                  159256 non-null  int64  
- 16  hemoglobin           159256 non-null  float64
- 17  Urine protein        159256 non-null  int64  
- 18  serum creatinine     159256 non-null  float64
- 19  AST                  159256 non-null  int64  
- 20  ALT                  159256 non-null  int64  
- 21  Gtp                  159256 non-null  int64  
- 22  dental caries        159256 non-null  int64  
- 23  smoking              159256 non-null  int64  
-dtypes: float64(5), int64(19)
-memory usage: 29.2 MB</code></pre>
-</div>
-</div>
-<div class="cell" data-execution_count="5">
-<div class="cell-output cell-output-display" data-execution_count="25">
+<div class="cell-output cell-output-display" data-execution_count="4">
 <div>
 
 
@@ -343,195 +334,195 @@ memory usage: 29.2 MB</code></pre>
 <tbody>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">count</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.00</td>
 <td>...</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
-<td>159256.000000</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.00</td>
+<td>159256.0</td>
+<td>159256.00</td>
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">mean</td>
-<td>79627.500000</td>
-<td>44.306626</td>
-<td>165.266929</td>
-<td>67.143662</td>
-<td>83.001990</td>
-<td>1.005798</td>
-<td>1.000989</td>
-<td>1.023974</td>
-<td>1.023421</td>
-<td>122.503648</td>
+<td>79627.50</td>
+<td>44.31</td>
+<td>165.27</td>
+<td>67.14</td>
+<td>83.00</td>
+<td>1.01</td>
+<td>1.00</td>
+<td>1.02</td>
+<td>1.02</td>
+<td>122.50</td>
 <td>...</td>
-<td>55.852684</td>
-<td>114.607682</td>
-<td>14.796965</td>
-<td>1.074233</td>
-<td>0.892764</td>
-<td>25.516853</td>
-<td>26.550296</td>
-<td>36.216004</td>
-<td>0.197996</td>
-<td>0.437365</td>
+<td>55.85</td>
+<td>114.61</td>
+<td>14.80</td>
+<td>1.07</td>
+<td>0.89</td>
+<td>25.52</td>
+<td>26.55</td>
+<td>36.22</td>
+<td>0.2</td>
+<td>0.44</td>
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">std</td>
-<td>45973.391572</td>
-<td>11.842286</td>
-<td>8.818970</td>
-<td>12.586198</td>
-<td>8.957937</td>
-<td>0.402113</td>
-<td>0.392299</td>
-<td>0.152969</td>
-<td>0.151238</td>
-<td>12.729315</td>
+<td>45973.39</td>
+<td>11.84</td>
+<td>8.82</td>
+<td>12.59</td>
+<td>8.96</td>
+<td>0.40</td>
+<td>0.39</td>
+<td>0.15</td>
+<td>0.15</td>
+<td>12.73</td>
 <td>...</td>
-<td>13.964141</td>
-<td>28.158931</td>
-<td>1.431213</td>
-<td>0.347856</td>
-<td>0.179346</td>
-<td>9.464882</td>
-<td>17.753070</td>
-<td>31.204643</td>
-<td>0.398490</td>
-<td>0.496063</td>
+<td>13.96</td>
+<td>28.16</td>
+<td>1.43</td>
+<td>0.35</td>
+<td>0.18</td>
+<td>9.46</td>
+<td>17.75</td>
+<td>31.20</td>
+<td>0.4</td>
+<td>0.50</td>
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">min</td>
-<td>0.000000</td>
-<td>20.000000</td>
-<td>135.000000</td>
-<td>30.000000</td>
-<td>51.000000</td>
-<td>0.100000</td>
-<td>0.100000</td>
-<td>1.000000</td>
-<td>1.000000</td>
-<td>77.000000</td>
+<td>0.00</td>
+<td>20.00</td>
+<td>135.00</td>
+<td>30.00</td>
+<td>51.00</td>
+<td>0.10</td>
+<td>0.10</td>
+<td>1.00</td>
+<td>1.00</td>
+<td>77.00</td>
 <td>...</td>
-<td>9.000000</td>
-<td>1.000000</td>
-<td>4.900000</td>
-<td>1.000000</td>
-<td>0.100000</td>
-<td>6.000000</td>
-<td>1.000000</td>
-<td>2.000000</td>
-<td>0.000000</td>
-<td>0.000000</td>
+<td>9.00</td>
+<td>1.00</td>
+<td>4.90</td>
+<td>1.00</td>
+<td>0.10</td>
+<td>6.00</td>
+<td>1.00</td>
+<td>2.00</td>
+<td>0.0</td>
+<td>0.00</td>
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">25%</td>
-<td>39813.750000</td>
-<td>40.000000</td>
-<td>160.000000</td>
-<td>60.000000</td>
-<td>77.000000</td>
-<td>0.800000</td>
-<td>0.800000</td>
-<td>1.000000</td>
-<td>1.000000</td>
-<td>114.000000</td>
+<td>39813.75</td>
+<td>40.00</td>
+<td>160.00</td>
+<td>60.00</td>
+<td>77.00</td>
+<td>0.80</td>
+<td>0.80</td>
+<td>1.00</td>
+<td>1.00</td>
+<td>114.00</td>
 <td>...</td>
-<td>45.000000</td>
-<td>95.000000</td>
-<td>13.800000</td>
-<td>1.000000</td>
-<td>0.800000</td>
-<td>20.000000</td>
-<td>16.000000</td>
-<td>18.000000</td>
-<td>0.000000</td>
-<td>0.000000</td>
+<td>45.00</td>
+<td>95.00</td>
+<td>13.80</td>
+<td>1.00</td>
+<td>0.80</td>
+<td>20.00</td>
+<td>16.00</td>
+<td>18.00</td>
+<td>0.0</td>
+<td>0.00</td>
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">50%</td>
-<td>79627.500000</td>
-<td>40.000000</td>
-<td>165.000000</td>
-<td>65.000000</td>
-<td>83.000000</td>
-<td>1.000000</td>
-<td>1.000000</td>
-<td>1.000000</td>
-<td>1.000000</td>
-<td>121.000000</td>
+<td>79627.50</td>
+<td>40.00</td>
+<td>165.00</td>
+<td>65.00</td>
+<td>83.00</td>
+<td>1.00</td>
+<td>1.00</td>
+<td>1.00</td>
+<td>1.00</td>
+<td>121.00</td>
 <td>...</td>
-<td>54.000000</td>
-<td>114.000000</td>
-<td>15.000000</td>
-<td>1.000000</td>
-<td>0.900000</td>
-<td>24.000000</td>
-<td>22.000000</td>
-<td>27.000000</td>
-<td>0.000000</td>
-<td>0.000000</td>
+<td>54.00</td>
+<td>114.00</td>
+<td>15.00</td>
+<td>1.00</td>
+<td>0.90</td>
+<td>24.00</td>
+<td>22.00</td>
+<td>27.00</td>
+<td>0.0</td>
+<td>0.00</td>
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">75%</td>
-<td>119441.250000</td>
-<td>55.000000</td>
-<td>170.000000</td>
-<td>75.000000</td>
-<td>89.000000</td>
-<td>1.200000</td>
-<td>1.200000</td>
-<td>1.000000</td>
-<td>1.000000</td>
-<td>130.000000</td>
+<td>119441.25</td>
+<td>55.00</td>
+<td>170.00</td>
+<td>75.00</td>
+<td>89.00</td>
+<td>1.20</td>
+<td>1.20</td>
+<td>1.00</td>
+<td>1.00</td>
+<td>130.00</td>
 <td>...</td>
-<td>64.000000</td>
-<td>133.000000</td>
-<td>15.800000</td>
-<td>1.000000</td>
-<td>1.000000</td>
-<td>29.000000</td>
-<td>32.000000</td>
-<td>44.000000</td>
-<td>0.000000</td>
-<td>1.000000</td>
+<td>64.00</td>
+<td>133.00</td>
+<td>15.80</td>
+<td>1.00</td>
+<td>1.00</td>
+<td>29.00</td>
+<td>32.00</td>
+<td>44.00</td>
+<td>0.0</td>
+<td>1.00</td>
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">max</td>
-<td>159255.000000</td>
-<td>85.000000</td>
-<td>190.000000</td>
-<td>130.000000</td>
-<td>127.000000</td>
-<td>9.900000</td>
-<td>9.900000</td>
-<td>2.000000</td>
-<td>2.000000</td>
-<td>213.000000</td>
+<td>159255.00</td>
+<td>85.00</td>
+<td>190.00</td>
+<td>130.00</td>
+<td>127.00</td>
+<td>9.90</td>
+<td>9.90</td>
+<td>2.00</td>
+<td>2.00</td>
+<td>213.00</td>
 <td>...</td>
-<td>136.000000</td>
-<td>1860.000000</td>
-<td>21.000000</td>
-<td>6.000000</td>
-<td>9.900000</td>
-<td>778.000000</td>
-<td>2914.000000</td>
-<td>999.000000</td>
-<td>1.000000</td>
-<td>1.000000</td>
+<td>136.00</td>
+<td>1860.00</td>
+<td>21.00</td>
+<td>6.00</td>
+<td>9.90</td>
+<td>778.00</td>
+<td>2914.00</td>
+<td>999.00</td>
+<td>1.0</td>
+<td>1.00</td>
 </tr>
 </tbody>
 </table>
@@ -543,54 +534,91 @@ memory usage: 29.2 MB</code></pre>
 </section>
 <section id="data" class="level2">
 <h2 class="anchored" data-anchor-id="data">Data</h2>
-<p>What is in dataset:</p>
-<ol type="1">
-<li>Age<br>
-</li>
-<li>Height [cm]<br>
-</li>
-<li>Weight [kg]<br>
-</li>
-<li>Waist [cm]<br>
-</li>
-<li>Eyesight [left]<br>
-</li>
-<li>Eyesight [right]<br>
-</li>
-<li>Hearing [left]<br>
-</li>
-<li>Hearing [right]<br>
-</li>
-<li>Systolic<br>
-</li>
-<li>Relaxation<br>
-</li>
-<li>Fasting blood sugar<br>
-</li>
-<li>Cholesterol<br>
-</li>
-<li>Triglyceride<br>
-</li>
-<li>HDL<br>
-</li>
-<li>LDL<br>
-</li>
-<li>Hemoglobin<br>
-</li>
-<li>Urine protein<br>
-</li>
-<li>Serum creatinine<br>
-</li>
-<li>AST<br>
-</li>
-<li>ALT<br>
-</li>
-<li>Gtp<br>
-</li>
-<li>Dental caries<br>
-</li>
-<li>Smoking</li>
-</ol>
+<p>Dataset contains both numeric and categorical data.</p>
+<p>Numeric data is: age, height, waist, eyesight, systolic and relaxed blood pressure, fasting blood sugar, cholesterol, triglyceride, serum creatinine, AST, ALT, Gtp</p>
+<p>Categorical data is: hearing, dental caries, smoking (target variable)</p>
+<p>Where does urine protein go?</p>
+<section id="heatmap" class="level3">
+<h3 class="anchored" data-anchor-id="heatmap">Heatmap</h3>
+<div class="cell" data-execution_count="7">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-8-output-1.png" width="727" height="605"></p>
+</div>
+</div>
+</section>
+<section id="age" class="level3">
+<h3 class="anchored" data-anchor-id="age">Age</h3>
+<div class="cell" data-execution_count="8">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-9-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="9">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-10-output-1.png" width="585" height="411"></p>
+</div>
+</div>
+</section>
+<section id="weight" class="level3">
+<h3 class="anchored" data-anchor-id="weight">Weight</h3>
+</section>
+<section id="height" class="level3">
+<h3 class="anchored" data-anchor-id="height">Height</h3>
+</section>
+<section id="waist" class="level3">
+<h3 class="anchored" data-anchor-id="waist">Waist</h3>
+</section>
+<section id="eyesight-left-right" class="level3">
+<h3 class="anchored" data-anchor-id="eyesight-left-right">Eyesight [left, right]</h3>
+</section>
+<section id="hearing-left-right" class="level3">
+<h3 class="anchored" data-anchor-id="hearing-left-right">Hearing [left, right]</h3>
+</section>
+<section id="systolic" class="level3">
+<h3 class="anchored" data-anchor-id="systolic">Systolic</h3>
+</section>
+<section id="relaxation" class="level3">
+<h3 class="anchored" data-anchor-id="relaxation">Relaxation</h3>
+</section>
+<section id="fasting-blood-sugar" class="level3">
+<h3 class="anchored" data-anchor-id="fasting-blood-sugar">Fasting blood sugar</h3>
+</section>
+<section id="cholesterol" class="level3">
+<h3 class="anchored" data-anchor-id="cholesterol">Cholesterol</h3>
+</section>
+<section id="triglyceride" class="level3">
+<h3 class="anchored" data-anchor-id="triglyceride">Triglyceride</h3>
+</section>
+<section id="hdl" class="level3">
+<h3 class="anchored" data-anchor-id="hdl">HDL</h3>
+</section>
+<section id="ldl" class="level3">
+<h3 class="anchored" data-anchor-id="ldl">LDL</h3>
+</section>
+<section id="hemoglobin" class="level3">
+<h3 class="anchored" data-anchor-id="hemoglobin">Hemoglobin</h3>
+</section>
+<section id="urine-protein" class="level3">
+<h3 class="anchored" data-anchor-id="urine-protein">Urine protein</h3>
+</section>
+<section id="serum-creatinine" class="level3">
+<h3 class="anchored" data-anchor-id="serum-creatinine">Serum creatinine</h3>
+</section>
+<section id="ast" class="level3">
+<h3 class="anchored" data-anchor-id="ast">AST</h3>
+</section>
+<section id="alt" class="level3">
+<h3 class="anchored" data-anchor-id="alt">ALT</h3>
+</section>
+<section id="gtp" class="level3">
+<h3 class="anchored" data-anchor-id="gtp">Gtp</h3>
+</section>
+<section id="dental-caries" class="level3">
+<h3 class="anchored" data-anchor-id="dental-caries">Dental caries</h3>
+</section>
+<section id="smoking" class="level3">
+<h3 class="anchored" data-anchor-id="smoking">Smoking</h3>
+</section>
 </section>
 
 </main>
