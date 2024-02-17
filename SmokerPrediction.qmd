@@ -5,7 +5,7 @@ toc: true
 toc-title: "Table of contents"
 ---
 
-## Markdown
+## Reading and preprocessing data
 
 Data taken from [Kaggle coding competition on smoker prediction](https://www.kaggle.com/competitions/playground-series-s3e24/overview)  
 
@@ -14,13 +14,19 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+from sklearn.preprocessing import OneHotEncoder, MinMaxScaler, StandardScaler
+from sklearn.linear_model import LogisticRegression, LogisticRegressionCV,SGDClassifier
+from sklearn.kernel_approximation import RBFSampler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.svm import SVC
+from sklearn.model_selection import train_test_split, cross_validate, RandomizedSearchCV
+from sklearn.compose import ColumnTransformer
 ```
 
 
 ```{python, echo=FALSE}
-#| echo: false
 pd.set_option("display.precision", 2)
-data = pd.read_csv('Smokers/train.csv', index_col=None)
+data = pd.read_csv('Smokers/train.csv', index_col=0)
 ```
 
 ```{python}
@@ -33,8 +39,9 @@ data.head()
 data.describe()
 ```
 
+Making hearing left and hearing right into one variable for better plotting
+
 ```{python}
-#| echo: false
 idx = ["Both hearing", "One deaf", "Both deaf"]
 hear = data.loc[:, ["hearing(left)", "hearing(right)"]]
 hearing = []
@@ -43,13 +50,7 @@ for index, row in hear.iterrows():
 data.loc[:, "hearing"] = hearing
 ```
 
-```{python}
-#| echo: false
-l_numeric = ["age", "height(cm)", "weight(kg)", "waist(cm)", "eyesight(left)", "eyesight(right)", "systolic", "relaxation", "fasting blood sugar", "Cholesterol", "triglyceride", "HDL", "LDL", "hemoglobin", "serum creatinine", "AST", "ALT", "Gtp"]
-numeric = data.loc[:, l_numeric]
-l_categorical = ["hearing(left)", "hearing(right)", "dental caries", "smoking"]
-categorical = data.loc[:, l_categorical]
-```
+Separating out numeric and categorial variables
 
 ## Data
 
@@ -57,14 +58,16 @@ Dataset contains both numeric and categorical data.
 
 Numeric data are: age, height, waist, eyesight, systolic and relaxed blood pressure, fasting blood sugar, cholesterol, triglyceride, serum creatinine, AST, ALT, Gtp  
 
-Categorical data are: hearing, dental caries, smoking (target variable)
-
-Where does urine protein go?
+Categorical data are: urine protein, hearing, dental caries, smoking (target variable)
 
 ### Heatmap
 
 ```{python}
 #| echo: false
+l_numeric = ["age", "height(cm)", "weight(kg)", "waist(cm)", "eyesight(left)", "eyesight(right)", "systolic", "relaxation", "fasting blood sugar", "Cholesterol", "triglyceride", "HDL", "LDL", "hemoglobin", "serum creatinine", "AST", "ALT", "Gtp"]
+
+numeric = data[l_numeric]
+
 plt.figure(figsize=(8, 6))
 corr = numeric.corr()
 sns.heatmap(corr, cmap="Spectral")
@@ -72,54 +75,1242 @@ plt.show()
 ```
 
 ### Age
+
+From correlation heatmap we can see that age is negatively correlated with height, weight and eyesight. However, the correlation matrix is only done for numeric values, so let’s take a look on it’s relationship with categorical variables as well.
+
 ```{python}
 #| echo: false
 sns.histplot(data, x="age", binwidth=5).set(xlabel="Age")
 plt.show()
 ```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="age", y="weight(kg)").set(xlabel="Age", ylabel="Weight (kg)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="age", y="height(cm)").set(xlabel="Age", ylabel="Height (cm)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="age", y="eyesight(left)", alpha=.2).set(xlabel="Age", ylabel="Eyesight")
+plt.show()
+```
+
 ```{python}
 #| echo: false
 sns.boxplot(data, x="hearing", y="age").set(xlabel="", ylabel="Age")
 plt.show()
 ```
 
+```{python}
+#| echo: false
+sns.boxplot(data, x="Urine protein", y="age").set(xlabel="Urine Protein", ylabel="Age")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="dental caries", y="age").set(xlabel="Dental Caries", ylabel="Age")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="smoking", y="age").set(xlabel="Smoking", ylabel="Age")
+plt.show()
+```
 
 ### Weight
 
+From correlation heatmap, weight came out as positively correlated with waist and height. But it is also negatively correlated with HDL, so let's take a look at that.
+
+```{python}
+#| echo: false
+sns.histplot(data, x="weight(kg)", bins=20).set(xlabel="Weight (kg)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="weight(kg)", y="HDL").set(xlabel="Weight (kg)", ylabel="HDL")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="hearing", y="weight(kg)").set(xlabel="", ylabel="Weight (kg)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="Urine protein", y="weight(kg)").set(xlabel="Urine protein", ylabel="Weight (kg)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="dental caries", y="weight(kg)").set(xlabel="Dental Caries", ylabel="Weight (kg)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="smoking", y="weight(kg)").set(xlabel="Smoking", ylabel="Weight (kg)")
+plt.show()
+```
+
 ### Height
+
+In correlation heatmap we can see that is slighty negatively correlated with age and HDL, and positively correlated with weight and hemoglobin.
+
+Let's take a look at the hemoglobin relationship.
+
+```{python}
+#| echo: false
+sns.histplot(data, x="height(cm)", binwidth=5).set(xlabel="Height (cm)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="height(cm)", y="hemoglobin").set(xlabel="Height (cm)", ylabel="Hemoglobin")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="hearing", y="height(cm)").set(xlabel="Hearing", ylabel="Height (cm)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="Urine protein", y="height(cm)").set(xlabel="Urine Protein", ylabel="Height (cm)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="dental caries", y="height(cm)").set(xlabel="Dental Caries", ylabel="Height (cm)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="smoking", y="height(cm)").set(xlabel="Smoking", ylabel="Height (cm)")
+plt.show()
+```
 
 ### Waist
 
+Waist is highly correlated with weight and because of that, it should have similar relationships with other variables. So let's just take a look at categorical variables right after looking at the histogram and Waist-Weight scatter plot.
+
+```{python}
+#| echo: false
+sns.histplot(data, x="waist(cm)", binwidth=3).set(xlabel="Waist (cm)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="weight(kg)", y="waist(cm)").set(xlabel="Weight (kg)", ylabel="Waist (cm)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="hearing", y="waist(cm)").set(xlabel="Hearing", ylabel="Waist (cm)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="Urine protein", y="waist(cm)").set(xlabel="Urine Protein", ylabel="Waist (cm)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="dental caries", y="waist(cm)").set(xlabel="Dental Caries", ylabel="Waist (cm)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="smoking", y="waist(cm)").set(xlabel="Smoking", ylabel="Waist (cm)")
+plt.show()
+```
+
 ### Eyesight [left, right]
+
+For eyesight, there are cases of people being blind in one of their eyes (signaled by value 10 in eyesight) or being completely blind (only one case). We will take a look at histograms with eyesight better than 3 in both eyes
+
+```{python}
+#| echo: false
+sight = data[["eyesight(left)", "eyesight(right)", "hearing", "Urine protein", "dental caries", "smoking"]]
+sight = sight.loc[(sight["eyesight(left)"] < 3) & (sight["eyesight(right)"] < 3)]
+
+blind = data[["eyesight(left)", "eyesight(right)"]]
+blind = blind.loc[(blind["eyesight(left)"] > 3) | (blind["eyesight(right)"] > 3)]
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="eyesight(left)", y="eyesight(right)").set(xlabel="Eyesight (left)", ylabel="Eyesight (right)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(sight, x="eyesight(left)", y="eyesight(right)").set(xlabel="Eyesight (left)", ylabel="Eyesight (right)")
+plt.show()
+```
+
+From scatter plots we can see that it is fairly symmetrical, so I will only use eyesight left for all the other plots, since they should look basically the same.
+
+```{python}
+#| echo: false
+sns.histplot(sight, x="eyesight(left)", bins=10).set(xlabel="eyesight(left)")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(sight, x="hearing", y="eyesight(left)").set(xlabel="Hearing", ylabel="Eyesight")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(sight, x="Urine protein", y="eyesight(left)").set(xlabel="Urine Protein", ylabel="Eyesight")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(sight, x="dental caries", y="eyesight(left)").set(xlabel="Dental Caries", ylabel="Eyesight")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(sight, x="smoking", y="eyesight(left)").set(xlabel="Smoking", ylabel="Eyesight")
+plt.show()
+```
 
 ### Hearing [left, right]
 
+Hearing is a categorical variable. Since for those we are looking at their relationships with each individual numerical variable in their section in this case we will compare it to other categorical variable and we will look at how much samples fall in each category.
+
+```{python}
+#| echo: false
+sns.countplot(data, x="hearing").set(ylabel="Count")
+plt.show()
+```
+
+```{python}
+#| echo: false
+ax = sns.countplot(data, hue="smoking", x="hearing")
+ax.set(ylabel="Smoking", xlabel="Hearing")
+ax.bar_label(ax.containers[0])
+ax.bar_label(ax.containers[1])
+plt.show()
+```
+
+```{python}
+#| echo: false
+ax = sns.boxenplot(data, y="Urine protein", x="hearing")
+ax.set(ylabel="Urine protein", xlabel="Hearing")
+plt.show()
+```
+
+```{python}
+#| echo: false
+ax = sns.countplot(data, hue="dental caries", x="hearing")
+ax.set(ylabel="Dental caries", xlabel="Hearing")
+ax.bar_label(ax.containers[0])
+ax.bar_label(ax.containers[1])
+plt.show()
+```
+
+```{python}
+#| echo: false
+ax = sns.countplot(data, hue="smoking", x="hearing")
+ax.set(ylabel="smoking", xlabel="Hearing")
+ax.bar_label(ax.containers[0])
+ax.bar_label(ax.containers[1])
+plt.show()
+```
+
 ### Systolic
+
+Systolic blood pressure doesn't really show any strong correlation on heatmap except for relaxation, which is most likely diastolic pressure. I will still take a look at it's relationship with waist, since I would expect it to have some relationship.
+
+```{python}
+#| echo: false
+sns.histplot(data, binwidth=10, x="systolic").set(xlabel="Systolic pressure")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="systolic", y="relaxation").set(xlabel="Systolic", ylabel="Relaxation")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="systolic", y="waist(cm)").set(xlabel="Systolic", ylabel="Waist [cm]")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="hearing", y="systolic").set(xlabel="", ylabel="Systolic")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="dental caries", y="systolic").set(xlabel="Dental Caries", ylabel="Systolic")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="Urine protein", y="systolic").set(xlabel="Urine Protein", ylabel="Systolic")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="smoking", y="systolic").set(xlabel="Smoking", ylabel="Systolic")
+plt.show()
+```
 
 ### Relaxation
 
+Since relaxation is quite similar to systolic pressure, I will only show histogram and plots with categorical variables
+
+```{python}
+#| echo: false
+sns.histplot(data, binwidth=5, x="relaxation").set(xlabel="Relaxation")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="relaxation", y="waist(cm)").set(xlabel="Relaxation", ylabel="Waist [cm]")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="hearing", y="relaxation").set(xlabel="", ylabel="Relaxation")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="dental caries", y="relaxation").set(xlabel="Dental Caries", ylabel="Relaxation")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="Urine protein", y="relaxation").set(xlabel="Urine Protein", ylabel="Relaxation")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="smoking", y="relaxation").set(xlabel="Smoking", ylabel="Relaxation")
+plt.show()
+```
+
 ### Fasting blood sugar
+
+Fasting blood sugar shows weak anti-correlation with HDL, so we can look at that. Otherwise the heatmap doesn't really show anything of interest.
+
+Boxplot shows very strong outliers, expected fasting blood sugar in adults is between 70 and 100 mg/dL, values between 100 and 125 mg/dL should be an alarm for lifestyle change. Anything above means you are probably diabetic. Values of even 200 mg/dL seems very suspicous to me, so I will be removing them.
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="fasting blood sugar").set(xlabel="Fasting Blood Sugar")
+plt.show()
+```
+
+```{python}
+tmp = data.loc[data["fasting blood sugar"] < 200]
+```
+
+```{python}
+#| echo: false
+sns.histplot(tmp, binwidth=5, x="fasting blood sugar").set(xlabel="Fasting Blood Sugar")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(tmp, x="fasting blood sugar", y="HDL").set(xlabel="Fasting Blood Sugar", ylabel="HDL")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="hearing", y="fasting blood sugar").set(xlabel="", ylabel="Fasting Blood Sugar")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="dental caries", y="fasting blood sugar").set(xlabel="Dental Caries", ylabel="Fasting Blood Sugar")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="Urine protein", y="fasting blood sugar").set(xlabel="Urine Protein", ylabel="Fasting Blood Sugar")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="smoking", y="fasting blood sugar").set(xlabel="Smoking", ylabel="Fasting Blood Sugar")
+plt.show()
+```
 
 ### Cholesterol
 
+Cholesterol shows strong correlation with LDL.
+
+```{python}
+#| echo: false
+sns.histplot(data, binwidth=5, x="Cholesterol").set(xlabel="Cholesterol")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="Cholesterol", y="LDL").set(xlabel="Cholesterol", ylabel="LDL")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="hearing", y="Cholesterol").set(xlabel="", ylabel="Cholesterol")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="dental caries", y="Cholesterol").set(xlabel="Dental Caries", ylabel="Cholesterol")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="Urine protein", y="Cholesterol").set(xlabel="Urine Protein", ylabel="Cholesterol")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="smoking", y="Cholesterol").set(xlabel="Smoking", ylabel="Cholesterol")
+plt.show()
+```
+
 ### Triglyceride
+
+Triglyceride refers to body fat and shows anti-correlation with HDL and correlations with weight and waist.
+
+Again, we have some outliers present, I will be removing anything above 400 since the number of deleted entries is negligable.
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="triglyceride").set(xlabel="Triglyceride")
+plt.show()
+```
+
+```{python}
+tmp = data.loc[data["triglyceride"] < 400]
+```
+
+```{python}
+#| echo: false
+sns.histplot(tmp, binwidth=15, x="triglyceride").set(xlabel="Triglyceride")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(tmp, x="triglyceride", y="HDL").set(xlabel="Triglyceride", ylabel="HDL")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(tmp, x="triglyceride", y="weight(kg)").set(xlabel="Triglyceride", ylabel="Weight [kg]")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(tmp, x="triglyceride", y="waist(cm)").set(xlabel="Triglyceride", ylabel="Waist [cm]")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="hearing", y="triglyceride").set(xlabel="", ylabel="Triglyceride")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="dental caries", y="triglyceride").set(xlabel="Dental Caries", ylabel="Triglyceride")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="Urine protein", y="triglyceride").set(xlabel="Urine Protein", ylabel="Triglyceride")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="smoking", y="triglyceride").set(xlabel="Smoking", ylabel="Triglyceride")
+plt.show()
+```
 
 ### HDL
 
+HDL (high-density lipoprotein) shows anti-correlation with weight, waist and triglyceride. All of those, except for waist, have been plotted so I will skip those here. 
+
+```{python}
+#| echo: false
+sns.histplot(data, binwidth=5, x="HDL").set(xlabel="HDL")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="HDL", y="waist(cm)").set(xlabel="HDL", ylabel="Waist [cm]")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="hearing", y="HDL").set(xlabel="", ylabel="HDL")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="dental caries", y="HDL").set(xlabel="Dental Caries", ylabel="HDL")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="Urine protein", y="HDL").set(xlabel="Urine Protein", ylabel="HDL")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="smoking", y="HDL").set(xlabel="Smoking", ylabel="HDL")
+plt.show()
+```
+
 ### LDL
+
+LDL (low density lipoprotein) shows anti-correlation with weight and waist and correlation with cholesterol. Cholesterol has already been plotted, but waist and weight haven't, so let's do those.
+
+If we take a look at LDL boxplot, we can see that it has some very extreme outliers, so for the sake of plotting, I will filter those out here. And once we get to making predictors, I will also filter those out completely.
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="LDL").set(xlabel="LDL")
+plt.show()
+```
+
+
+```{python}
+tmp = data.loc[data["LDL"] < 500]
+```
+
+```{python}
+#| echo: false
+sns.histplot(tmp, binwidth=10, x="LDL").set(xlabel="LDL")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(tmp, x="LDL", y="waist(cm)").set(xlabel="LDL", ylabel="Waist [cm]")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(tmp, x="LDL", y="weight(kg)").set(xlabel="LDL", ylabel="Weight [kg]")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="hearing", y="LDL").set(xlabel="", ylabel="LDL")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="dental caries", y="LDL").set(xlabel="Dental Caries", ylabel="LDL")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="Urine protein", y="LDL").set(xlabel="Urine Protein", ylabel="LDL")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="smoking", y="LDL").set(xlabel="Smoking", ylabel="LDL")
+plt.show()
+```
 
 ### Hemoglobin
 
+Hemoglobin shows correlation with weight and waist.
+
+```{python}
+#| echo: false
+sns.histplot(data, binwidth=.5, x="hemoglobin").set(xlabel="Hemoglobin")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="hemoglobin", y="waist(cm)").set(xlabel="Hemoglobin", ylabel="Waist [cm]")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="hemoglobin", y="weight(kg)").set(xlabel="Hemoglobin", ylabel="Weight [kg]")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(data, x="hemoglobin", y="LDL").set(xlabel="Hemoglobin", ylabel="LDL")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="dental caries", y="hemoglobin").set(xlabel="Dental Caries", ylabel="Hemoglobin")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="hearing", y="hemoglobin").set(xlabel="Dental Caries", ylabel="Hemoglobin")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="Urine protein", y="hemoglobin").set(xlabel="Urine Protein", ylabel="Hemoglobin")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="smoking", y="hemoglobin").set(xlabel="Smoking", ylabel="Hemoglobin")
+plt.show()
+```
+
 ### Urine protein
+
+Urine protein is a categorical variable and thus will be plotted with numerical variables in their section. Here I will be plotting it with other categorical variables (except with hearing)
+
+One oddity with urine protein is that normally it is measured in miligrams, but here it is in values between 1 and 6. Also, the values are heavily skewed towards 1, thus I will be likely removing this column altogether.
+
+```{python}
+#| echo: false
+ax = sns.countplot(data, x="Urine protein")
+ax.set(ylabel="Count")
+ax.bar_label(ax.containers[0])
+plt.show()
+```
+
+```{python}
+#| echo: false
+ax = sns.countplot(data, hue="smoking", x="Urine protein")
+ax.set(ylabel="Smoking", xlabel="Urine protein")
+ax.bar_label(ax.containers[0])
+ax.bar_label(ax.containers[1])
+plt.show()
+```
+
+```{python}
+#| echo: false
+ax = sns.countplot(data, hue="dental caries", x="Urine protein")
+ax.set(ylabel="Dental caries", xlabel="Urine protein")
+ax.bar_label(ax.containers[0])
+ax.bar_label(ax.containers[1])
+plt.show()
+```
+
+```{python}
+#| echo: false
+ax = sns.countplot(data, hue="smoking", x="Urine protein")
+ax.set(ylabel="smoking", xlabel="Urine protein")
+ax.bar_label(ax.containers[0])
+ax.bar_label(ax.containers[1])
+plt.show()
+```
 
 ### Serum creatinine
 
+Serum creatinine refers to how well kindeys are filtering the blood. In the heatmap, it shows some correlation with hemoglobin, height and weight.
+
+On boxplot we can see that creatinine also has quite big outliers, [according to this website](https://www.medicinenet.com/creatinine_blood_test/article.htm) we should be expecting values between 0.5 and 1.2 mg. While I could expect 4 mg as an outlier, 10 seems to be quite overblown. For this I will be filtering out anything above 3 mg. 
+
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="serum creatinine").set(xlabel="Serum Creatinine")
+plt.show()
+```
+
+```{python}
+tmp = data.loc[data["serum creatinine"] < 3]
+```
+
+```{python}
+#| echo: false
+sns.histplot(tmp, binwidth=.1, x="serum creatinine").set(xlabel="Serum Creatinine")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(tmp, x="serum creatinine", y="height(cm)").set(xlabel="Serum Creatinine", ylabel="Height [cm]")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(tmp, x="serum creatinine", y="weight(kg)").set(xlabel="Serum Creatinine", ylabel="Weight [kg]")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(tmp, x="serum creatinine", y="hemoglobin").set(xlabel="Hemoglobin", ylabel="Serum Creatinine")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="hearing", y="serum creatinine").set(xlabel="Hearing", ylabel="Serum Creatinine")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="dental caries", y="serum creatinine").set(xlabel="Dental Caries", ylabel="Serum Creatinine")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="Urine protein", y="serum creatinine").set(xlabel="Urine Protein", ylabel="Serum Creatinine")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="smoking", y="serum creatinine").set(xlabel="Smoking", ylabel="Serum Creatinine")
+plt.show()
+```
+
 ### AST
+
+AST refers to an enzyme whose levels are used as markers of liver health. On the heatmap, it shows correlation with ALT, which is also used for liver diagnoses.
+
+Here we can see that this data set is very.. interesting. According to (this website)[https://www.medicalnewstoday.com/articles/320982#sgot-ranges] AST levels should be less than 40 U/L. Since size of this dataset is around 160 000 entries I will be aggresively removing everything above 100 U/L.
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="AST").set(xlabel="AST")
+plt.show()
+```
+
+```{python}
+tmp = data.loc[data["AST"] < 100]
+```
+
+```{python}
+#| echo: false
+sns.histplot(tmp, binwidth=3, x="AST").set(xlabel="AST")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="dental caries", y="AST").set(xlabel="Dental Caries", ylabel="AST")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="hearing", y="AST").set(xlabel="Hearing", ylabel="AST")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="Urine protein", y="AST").set(xlabel="Urine Protein", ylabel="AST")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="smoking", y="AST").set(xlabel="Smoking", ylabel="AST")
+plt.show()
+```
 
 ### ALT
 
+ALT, as eluded to, is another enzyme that is used for liver diagnoses.
+
+As we can see here on boxplot, the outliers are quite outrageous. Accoring to (this website)[https://www.healthline.com/health/alt#results] healthy levels should be from 19 to 33 U/L. So once again, I will take aggressive measures and remove everything above 100 U/L.
+
+```{python}
+#| echo: false
+sns.boxplot(data, x="ALT").set(xlabel="ALT")
+plt.show()
+```
+
+```{python}
+# I will remove AST as well so I can scatter plot them
+tmp = data.loc[data["ALT"] < 100]
+tmp = tmp.loc[tmp["AST"] < 100]
+```
+
+```{python}
+#| echo: false
+sns.histplot(tmp, binwidth=5, x="ALT").set(xlabel="ALT")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.scatterplot(tmp, x="ALT", y="AST").set(xlabel="ALT", ylabel="AST")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="dental caries", y="ALT").set(xlabel="Dental Caries", ylabel="ALT")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="hearing", y="ALT").set(xlabel="Hearing", ylabel="ALT")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="Urine protein", y="ALT").set(xlabel="Urine Protein", ylabel="ALT")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="smoking", y="ALT").set(xlabel="Smoking", ylabel="ALT")
+plt.show()
+```
+
 ### Gtp
+
+GTP is quite an odd variable, wikipedia tells me that it is building block for synthesis o RNA, but doesn't really talk about any diagnoses. And google doesn't really help. It did find GGT measuring (on this website)[https://www.ucsfhealth.org/medical-tests/gamma-glutamyl-transferase-(ggt)-blood-test] which says that healthy levels are between 5 and 40 U/L.
+
+On this boxplot we can see that outliers are again quite big, so once again, I will take aggressive measures and remove everything above 100 U/L.
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="Gtp").set(xlabel="Gtp")
+plt.show()
+```
+
+```{python}
+# I will remove AST as well so I can scatter plot them
+tmp = tmp.loc[tmp["Gtp"] < 100]
+```
+
+```{python}
+#| echo: false
+sns.histplot(tmp, binwidth=5, x="Gtp").set(xlabel="Gtp")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="dental caries", y="Gtp").set(xlabel="Dental Caries", ylabel="Gtp")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="hearing", y="Gtp").set(xlabel="Hearing", ylabel="Gtp")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="Urine protein", y="Gtp").set(xlabel="Urine Protein", ylabel="Gtp")
+plt.show()
+```
+
+```{python}
+#| echo: false
+sns.boxplot(tmp, x="smoking", y="Gtp").set(xlabel="Smoking", ylabel="Gtp")
+plt.show()
+```
 
 ### Dental caries
 
+Categorical variable, it has already been plotted with all numeric variables and with urine protein and hearing. So I will only plot it with smoking.
+
+```{python}
+#| echo: false
+ax = sns.countplot(data, x="dental caries")
+ax.set(ylabel="Count", xlabel="Dental Caries")
+ax.bar_label(ax.containers[0])
+plt.show()
+```
+
+```{python}
+#| echo: false
+ax = sns.countplot(data, hue="smoking", x="dental caries")
+ax.set(ylabel="Smoking", xlabel="Dental Caries")
+ax.bar_label(ax.containers[0])
+ax.bar_label(ax.containers[1])
+plt.show()
+```
+
 ### Smoking
+
+Since smoking has been plotted with everything there is, I will just write some of the relationships that I have noticed.
+
+```{python}
+#| echo: false
+ax = sns.countplot(data, x="dental caries")
+ax.set(ylabel="Count", xlabel="Dental Caries")
+ax.bar_label(ax.containers[0])
+plt.show()
+```
+
+#### Interesting relationships
+
+- Younger people seemed to smoke more than older people
+- People with higher weight are more likely to smoke
+- Smokers are also taller on average
+- It seems that in smokers levels of triglyceride are higher
+- Smokers have lower levels of HDL
+- Smokers have higher levels of hemoglobin
+- Levels of serum creatinine are in much smaller ranges than in non-smokers
+- GTP levels seem to be higher in smokers
+- Dental caries are more common in smokers
+
+### Conclusions on data
+
+It seems that there are several variables based on which we could try to determine whether somebody is smoking or not.
+
+Dataset has several columns with huge outliers and those will be filtered out. Thankfully, the dataset is large enough so it wouldn't really make a difference.
+
+Another thing is column "Urine protein" which just doesn't seem to make any sense. Since it also seems very unhelpful, I will be removing it from the dataset.
+
+Big number of variables have largely differing value ranges and thus the will need to be normalized. For that I will try two approaches:
+
+- Standard score: $x' = \dfrac{x-\mu}{\sigma}$, this should work since all the variables are resembling normal distribution. I haven't done any actual statistical testing though
+- MinMax scaling: this will rescale variables to be between 0 and 1
+
+Since there aren't that many strong correlations, I think that PCA won't be particularly helpful, so I won't be using it.
+
+## Data preparation for categorization
+
+The goal here is to filter out the outliers
+
+```{python}
+data = data.loc[data["fasting blood sugar"] < 200]
+data = data.loc[data["triglyceride"] < 400]
+data = data.loc[data["LDL"] < 500]
+data = data.loc[data["serum creatinine"] < 3]
+data = data.loc[data["AST"] < 100]
+data = data.loc[data["ALT"] < 100]
+data = data.loc[data["Gtp"] < 100]
+
+# Change hearing back to numbers
+# Let's encode it as "Hearing" = 2, "One-deaf" = 1, "Deaf" = 0
+data["hearing"] = data["hearing"].map({"Both deaf": 0, "One deaf": 1, "Both hearing": 2})
+```
+
+
+Here I will just separate out numeric and categorical variables. And also take extract out our target variable.
+
+```{python}
+l_numeric = ["age", "height(cm)", "weight(kg)", "waist(cm)", "eyesight(left)", "eyesight(right)", "systolic", "relaxation", "fasting blood sugar", "Cholesterol", "triglyceride", "HDL", "LDL", "hemoglobin", "serum creatinine", "AST", "ALT", "Gtp"]
+
+# Removal of Urine protein
+l_categorical = ["hearing", "dental caries"]
+
+numeric = data[l_numeric]
+categorical = data[l_categorical]
+target = data["smoking"]
+
+df = data.drop(columns=["smoking"])
+```
+
+## Training
+
+### Creating transformers for data
+
+With that done, let's create our preprocessors. 
+
+For numerical values I will be using MinMaxScaler for one attempt and StandardScaler for the other. 
+
+For categorical variables I will use OneHotEncoder, this means that hearing will be split into three distinct columns.
+
+```{python}
+minmax_scaler = MinMaxScaler().set_output(transform="pandas")
+standard_scaler = StandardScaler().set_output(transform="pandas")
+onehot_encoder = OneHotEncoder(sparse_output=False).set_output(transform="pandas")
+
+# Let's also create preprocessor that will do all of this stuff for us in one fell swoop
+minmax_prep = ColumnTransformer(
+    [
+        ("one-hot-encoder", onehot_encoder, l_categorical),
+        ("minmax_scaler", minmax_scaler, l_numeric)
+    ]
+)
+
+standard_prep = ColumnTransformer(
+    [
+        ("one-hot-encoder", onehot_encoder, l_categorical),
+        ("standard_scaler", standard_scaler, l_numeric)
+    ]
+)
+```
+
+Let's get us some training and testing data.
+
+```{python}
+Xmm = minmax_prep.fit_transform(df)
+Xstd = standard_prep.fit_transform(df) 
+
+Xmm_train, Xmm_test, ymm_train, ymm_test = train_test_split(Xmm, target, test_size=0.4)
+Xstd_train, Xstd_test, ystd_train, ystd_test = train_test_split(Xstd, target, test_size=0.4)
+```
+
+```{python}
+mm_log_reg = None
+std_log_reg = None
+```
+
+### Training Logistic regression
+
+```{python}
+mm_log_reg = LogisticRegressionCV(max_iter=500, cv=5)
+mm_log_reg.fit(Xmm_train, ymm_train)
+
+std_log_reg = LogisticRegressionCV(max_iter=500, cv=5)
+std_log_reg.fit(Xstd_train, ystd_train)
+
+print(f"Accuracy of MinMax scaling using logistic regression: {mm_log_reg.score(Xmm_test, ymm_test)}")
+print(f"Accuracy of standard scaling using logistic regression: {std_log_reg.score(Xstd_test, ystd_test)}")
+```
+
+Here we can see that we have about the same accuracy for both minmax and standard scaling, with the score being ~0.749, and standard scaling is performing slightly worse.
+
+Now let's try to take a look if we can perform slightly better with some other methods
+
+### Random forest classifier
+
+For random forest classifier I decided to use RandomizedSearch with cross validation to find optimal parameters.
+
+```{python}
+parameters = {'n_estimators' : np.arange(10,100)}
+
+mm_forest = RandomizedSearchCV(RandomForestClassifier(), parameters)
+mm_forest.fit(Xmm_train, ymm_train)
+
+std_forest = RandomizedSearchCV(RandomForestClassifier(), parameters)
+std_forest.fit(Xstd_train, ystd_train)
+
+print(f"Accuracy of MinMax scaling using random forest: {mm_forest.best_score_} with estimators {mm_forest.best_estimator_}")
+print(f"Accuracy of standard scaling using random forest: {std_forest.best_score_} with estimators {std_forest.best_estimator_}")
+```
+
+For random forest classifier we can see that the accuracy has risen compared to logistic regression. MinMax scaling is still performing very slightly better than standard scaling.
+
+### SVM
+
+While I have planned to compare several SVM kernels, given the sheer size of my dataset and severe limitations on time I can spend on this, taking into account rendering the document, I will use only RBF kernel, which has performed best in my testing.
+
+```{python}
+mm_svm = SVC(kernel='rbf', gamma='scale')
+std_svm = SVC(kernel='rbf', gamma='scale')
+mm_svm.fit(Xmm_train, ymm_train)
+std_svm.fit(Xstd_train, ystd_train)
+
+print(f"Accuracy of MinMax scaling using SVM: {mm_svm.score(Xmm_test, ymm_test)}")
+print(f"Accuracy of standard scaling using SVM: {std_svm.score(Xstd_test, ystd_test)}")
+```
+
+If we look at results here, standard scaling is finally outperforming minmax and by non-negligable ammount.
+
+### SGD Classifier
+
+One thing that apparently performs pretty well on large samples is SGD Classifier, so I would like to test it here.
+
+```{python}
+mm_sgd = SGDClassifier()
+std_sgd = SGDClassifier()
+
+mm_sgd.fit(Xmm_train, ymm_train)
+std_sgd.fit(Xstd_train, ystd_train)
+
+print(f"Accuracy of MinMax scaling using SGD: {mm_sgd.score(Xmm_test, ymm_test)}")
+print(f"Accuracy of standard scaling using SGD: {std_sgd.score(Xstd_test, ystd_test)}")
+```
+
+By itself SGD doesn't really perform that well. Let's try to use kernel approximation with RBF sampler, since it RBF performed so well with SVM
+
+```{python}
+mm_sgd_rbf = SGDClassifier()
+std_sgd_rbf = SGDClassifier()
+
+sampler = RBFSampler()
+
+Xmm_rbf = sampler.fit_transform(Xmm)
+Xstd_rbf = sampler.fit_transform(Xstd)
+
+Xmm_rbf_train, Xmm_rbf_test, ymm_rbf_train, ymm_rbf_test = train_test_split(Xmm, target, test_size=0.4)
+Xstd_rbf_train, Xstd_rbf_test, ystd_rbf_train, ystd_rbf_test = train_test_split(Xstd, target, test_size=0.4)
+
+mm_sgd_rbf.fit(Xmm_rbf_train, ymm_rbf_train)
+std_sgd_rbf.fit(Xstd_rbf_train, ystd_rbf_train)
+
+print(f"Accuracy of MinMax scaling using SGD with RBF kernel: {mm_sgd_rbf.score(Xmm_rbf_test, ymm_rbf_test)}")
+print(f"Accuracy of standard scaling using SGD with RBF kernel: {std_sgd_rbf.score(Xstd_rbf_test, ystd_rbf_test)}")
+```
+
+There was an attempt, maybe by testing more kernel approximations I could get somewhere, but I will leave that be.
+
+### Conclusion
+
+For Logistic regression, minmax scaling had better performance, but by negligable ammount.
+
+For random forest minmax also took the cake, but again, by negligable ammount
+
+When it came to SVM however, standard scaling had better performance than minmax scaling. The difference this time was, however, quite substantial.
+
+Now, let's compare how each method fared for both minmax and standard
+
+Minmax:
+
+1. Random Forest
+2. SVM
+3. SGD
+4. SGD with RBF kernel approximation
+5. Logistic regression
+
+Standard scaling:
+
+1. SVM
+2. Random Forest
+3. SGD
+4. SDG with RBF kernel approximation
+5. Logistic regression
+
+When comparing random forest for MinMax and SVM for standard scaling, it seems that SVM for standard scaling comes on top, so I will be using that for the actual sumbmission.
+
+## Submission of my predictions
+
+Data to classify for the submission is in *test.csv* file, so let's get the data in.
+
+```{python}
+test_data = pd.read_csv('Smokers/test.csv', index_col=0)
+```
+
+Since submission is in format [id, smoking] let's check to make sure that the id's match up
+
+```{python}
+print("Head")
+print(test_data.head(), "\n")
+print("Tail")
+print(test_data.tail(), "\n")
+```
+
+Id's are matching up, so we can proceed to pre-preprocessing.
+
+The only thing I will need to do here is to merge hearing (left) and (right) in the same way I did in the training part. Then Sklearn can take the wheel. 
+
+```{python}
+idx = ["Both hearing", "One deaf", "Both deaf"]
+hear = test_data.loc[:, ["hearing(left)", "hearing(right)"]]
+hearing = []
+for index, row in hear.iterrows():
+    hearing.append(idx[row.iloc[0] + row.iloc[1] - 2])
+test_data.loc[:, "hearing"] = hearing
+
+test_data["hearing"] = test_data["hearing"].map({"Both deaf": 0, "One deaf": 1, "Both hearing": 2})
+```
+
+So now we just transform our data and feed it to out trained SVM classifier
+
+```{python}
+X = standard_prep.fit_transform(test_data)
+prediction = std_svm.predict(X)
+```
+
+After getting prediction from the SVM model it's time to put it into a dataframe and export it as an csv file.
+
+```{python}
+test_data["smoking"] = prediction
+output = test_data["smoking"]
+print(output.head())
+```
+
+```{python}
+#| echo: false
+output.to_csv('Smokers/my_submission.csv')
+```
+
+```{{python}}
+output.to_csv('Smokers/my_submission.csv')
+```
+
+## Results
+
+And here we go, those are the results of my work. Public score of 0.78 and private 0.778.
+
+![results](Results.png)

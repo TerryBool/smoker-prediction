@@ -71,6 +71,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>
 <script type="application/javascript">define('jquery', [],function() {return window.jQuery;})</script>
 
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
 
 </head>
 
@@ -82,7 +84,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#markdown" id="toc-markdown" class="nav-link active" data-scroll-target="#markdown">Markdown</a></li>
+  <li><a href="#reading-and-preprocessing-data" id="toc-reading-and-preprocessing-data" class="nav-link active" data-scroll-target="#reading-and-preprocessing-data">Reading and preprocessing data</a></li>
   <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a>
   <ul class="collapse">
   <li><a href="#heatmap" id="toc-heatmap" class="nav-link" data-scroll-target="#heatmap">Heatmap</a></li>
@@ -107,7 +109,20 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
   <li><a href="#gtp" id="toc-gtp" class="nav-link" data-scroll-target="#gtp">Gtp</a></li>
   <li><a href="#dental-caries" id="toc-dental-caries" class="nav-link" data-scroll-target="#dental-caries">Dental caries</a></li>
   <li><a href="#smoking" id="toc-smoking" class="nav-link" data-scroll-target="#smoking">Smoking</a></li>
+  <li><a href="#conclusions-on-data" id="toc-conclusions-on-data" class="nav-link" data-scroll-target="#conclusions-on-data">Conclusions on data</a></li>
   </ul></li>
+  <li><a href="#data-preparation-for-categorization" id="toc-data-preparation-for-categorization" class="nav-link" data-scroll-target="#data-preparation-for-categorization">Data preparation for categorization</a></li>
+  <li><a href="#training" id="toc-training" class="nav-link" data-scroll-target="#training">Training</a>
+  <ul class="collapse">
+  <li><a href="#creating-transformers-for-data" id="toc-creating-transformers-for-data" class="nav-link" data-scroll-target="#creating-transformers-for-data">Creating transformers for data</a></li>
+  <li><a href="#training-logistic-regression" id="toc-training-logistic-regression" class="nav-link" data-scroll-target="#training-logistic-regression">Training Logistic regression</a></li>
+  <li><a href="#random-forest-classifier" id="toc-random-forest-classifier" class="nav-link" data-scroll-target="#random-forest-classifier">Random forest classifier</a></li>
+  <li><a href="#svm" id="toc-svm" class="nav-link" data-scroll-target="#svm">SVM</a></li>
+  <li><a href="#sgd-classifier" id="toc-sgd-classifier" class="nav-link" data-scroll-target="#sgd-classifier">SGD Classifier</a></li>
+  <li><a href="#conclusion" id="toc-conclusion" class="nav-link" data-scroll-target="#conclusion">Conclusion</a></li>
+  </ul></li>
+  <li><a href="#submission-of-my-predictions" id="toc-submission-of-my-predictions" class="nav-link" data-scroll-target="#submission-of-my-predictions">Submission of my predictions</a></li>
+  <li><a href="#results" id="toc-results" class="nav-link" data-scroll-target="#results">Results</a></li>
   </ul>
 </nav>
 </div>
@@ -130,14 +145,25 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
-<section id="markdown" class="level2">
-<h2 class="anchored" data-anchor-id="markdown">Markdown</h2>
+<section id="reading-and-preprocessing-data" class="level2">
+<h2 class="anchored" data-anchor-id="reading-and-preprocessing-data">Reading and preprocessing data</h2>
 <p>Data taken from <a href="https://www.kaggle.com/competitions/playground-series-s3e24/overview">Kaggle coding competition on smoker prediction</a></p>
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> seaborn <span class="im">as</span> sns</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> matplotlib.pyplot <span class="im">as</span> plt</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.preprocessing <span class="im">import</span> OneHotEncoder, MinMaxScaler, StandardScaler</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.linear_model <span class="im">import</span> LogisticRegression, LogisticRegressionCV,SGDClassifier</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.kernel_approximation <span class="im">import</span> RBFSampler</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.ensemble <span class="im">import</span> RandomForestClassifier</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.svm <span class="im">import</span> SVC</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.model_selection <span class="im">import</span> train_test_split, cross_validate, RandomizedSearchCV</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="im">from</span> sklearn.compose <span class="im">import</span> ColumnTransformer</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="2">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>pd.set_option(<span class="st">"display.precision"</span>, <span class="dv">2</span>)</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> pd.read_csv(<span class="st">'Smokers/train.csv'</span>, index_col<span class="op">=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-execution_count="3">
 <div class="cell-output cell-output-display" data-execution_count="3">
@@ -148,7 +174,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <thead>
 <tr class="header">
 <th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">id</th>
 <th data-quarto-table-cell-role="th">age</th>
 <th data-quarto-table-cell-role="th">height(cm)</th>
 <th data-quarto-table-cell-role="th">weight(kg)</th>
@@ -158,6 +183,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <th data-quarto-table-cell-role="th">hearing(left)</th>
 <th data-quarto-table-cell-role="th">hearing(right)</th>
 <th data-quarto-table-cell-role="th">systolic</th>
+<th data-quarto-table-cell-role="th">relaxation</th>
 <th data-quarto-table-cell-role="th">...</th>
 <th data-quarto-table-cell-role="th">HDL</th>
 <th data-quarto-table-cell-role="th">LDL</th>
@@ -170,11 +196,34 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <th data-quarto-table-cell-role="th">dental caries</th>
 <th data-quarto-table-cell-role="th">smoking</th>
 </tr>
+<tr class="odd">
+<th data-quarto-table-cell-role="th">id</th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+<th data-quarto-table-cell-role="th"></th>
+</tr>
 </thead>
 <tbody>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">0</td>
-<td>0</td>
 <td>55</td>
 <td>165</td>
 <td>60</td>
@@ -184,6 +233,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>1</td>
 <td>1</td>
 <td>135</td>
+<td>87</td>
 <td>...</td>
 <td>40</td>
 <td>75</td>
@@ -198,7 +248,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">1</td>
-<td>1</td>
 <td>70</td>
 <td>165</td>
 <td>65</td>
@@ -208,6 +257,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>2</td>
 <td>2</td>
 <td>146</td>
+<td>83</td>
 <td>...</td>
 <td>57</td>
 <td>126</td>
@@ -222,7 +272,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">2</td>
-<td>2</td>
 <td>20</td>
 <td>170</td>
 <td>75</td>
@@ -232,6 +281,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>1</td>
 <td>1</td>
 <td>118</td>
+<td>75</td>
 <td>...</td>
 <td>45</td>
 <td>93</td>
@@ -246,7 +296,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">3</td>
-<td>3</td>
 <td>35</td>
 <td>180</td>
 <td>95</td>
@@ -256,6 +305,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>1</td>
 <td>1</td>
 <td>131</td>
+<td>88</td>
 <td>...</td>
 <td>38</td>
 <td>102</td>
@@ -270,7 +320,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">4</td>
-<td>4</td>
 <td>30</td>
 <td>165</td>
 <td>60</td>
@@ -280,6 +329,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>1</td>
 <td>1</td>
 <td>121</td>
+<td>76</td>
 <td>...</td>
 <td>44</td>
 <td>93</td>
@@ -295,7 +345,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 
-<p>5 rows × 24 columns</p>
+<p>5 rows × 23 columns</p>
 </div>
 </div>
 </div>
@@ -308,7 +358,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <thead>
 <tr class="header">
 <th data-quarto-table-cell-role="th"></th>
-<th data-quarto-table-cell-role="th">id</th>
 <th data-quarto-table-cell-role="th">age</th>
 <th data-quarto-table-cell-role="th">height(cm)</th>
 <th data-quarto-table-cell-role="th">weight(kg)</th>
@@ -318,6 +367,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <th data-quarto-table-cell-role="th">hearing(left)</th>
 <th data-quarto-table-cell-role="th">hearing(right)</th>
 <th data-quarto-table-cell-role="th">systolic</th>
+<th data-quarto-table-cell-role="th">relaxation</th>
 <th data-quarto-table-cell-role="th">...</th>
 <th data-quarto-table-cell-role="th">HDL</th>
 <th data-quarto-table-cell-role="th">LDL</th>
@@ -358,7 +408,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">mean</td>
-<td>79627.50</td>
 <td>44.31</td>
 <td>165.27</td>
 <td>67.14</td>
@@ -368,6 +417,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>1.02</td>
 <td>1.02</td>
 <td>122.50</td>
+<td>76.87</td>
 <td>...</td>
 <td>55.85</td>
 <td>114.61</td>
@@ -382,7 +432,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">std</td>
-<td>45973.39</td>
 <td>11.84</td>
 <td>8.82</td>
 <td>12.59</td>
@@ -392,6 +441,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>0.15</td>
 <td>0.15</td>
 <td>12.73</td>
+<td>8.99</td>
 <td>...</td>
 <td>13.96</td>
 <td>28.16</td>
@@ -406,7 +456,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">min</td>
-<td>0.00</td>
 <td>20.00</td>
 <td>135.00</td>
 <td>30.00</td>
@@ -416,6 +465,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>1.00</td>
 <td>1.00</td>
 <td>77.00</td>
+<td>44.00</td>
 <td>...</td>
 <td>9.00</td>
 <td>1.00</td>
@@ -430,7 +480,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">25%</td>
-<td>39813.75</td>
 <td>40.00</td>
 <td>160.00</td>
 <td>60.00</td>
@@ -440,6 +489,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>1.00</td>
 <td>1.00</td>
 <td>114.00</td>
+<td>70.00</td>
 <td>...</td>
 <td>45.00</td>
 <td>95.00</td>
@@ -454,7 +504,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">50%</td>
-<td>79627.50</td>
 <td>40.00</td>
 <td>165.00</td>
 <td>65.00</td>
@@ -464,6 +513,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>1.00</td>
 <td>1.00</td>
 <td>121.00</td>
+<td>78.00</td>
 <td>...</td>
 <td>54.00</td>
 <td>114.00</td>
@@ -478,7 +528,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="odd">
 <td data-quarto-table-cell-role="th">75%</td>
-<td>119441.25</td>
 <td>55.00</td>
 <td>170.00</td>
 <td>75.00</td>
@@ -488,6 +537,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>1.00</td>
 <td>1.00</td>
 <td>130.00</td>
+<td>82.00</td>
 <td>...</td>
 <td>64.00</td>
 <td>133.00</td>
@@ -502,7 +552,6 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tr>
 <tr class="even">
 <td data-quarto-table-cell-role="th">max</td>
-<td>159255.00</td>
 <td>85.00</td>
 <td>190.00</td>
 <td>130.00</td>
@@ -512,6 +561,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <td>2.00</td>
 <td>2.00</td>
 <td>213.00</td>
+<td>133.00</td>
 <td>...</td>
 <td>136.00</td>
 <td>1860.00</td>
@@ -527,98 +577,1150 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </tbody>
 </table>
 
-<p>8 rows × 24 columns</p>
+<p>8 rows × 23 columns</p>
 </div>
 </div>
 </div>
+<p>Making hearing left and hearing right into one variable for better plotting</p>
+<div class="cell" data-execution_count="5">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>idx <span class="op">=</span> [<span class="st">"Both hearing"</span>, <span class="st">"One deaf"</span>, <span class="st">"Both deaf"</span>]</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>hear <span class="op">=</span> data.loc[:, [<span class="st">"hearing(left)"</span>, <span class="st">"hearing(right)"</span>]]</span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>hearing <span class="op">=</span> []</span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, row <span class="kw">in</span> hear.iterrows():</span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    hearing.append(idx[row.iloc[<span class="dv">0</span>] <span class="op">+</span> row.iloc[<span class="dv">1</span>] <span class="op">-</span> <span class="dv">2</span>])</span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>data.loc[:, <span class="st">"hearing"</span>] <span class="op">=</span> hearing</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Separating out numeric and categorial variables</p>
 </section>
 <section id="data" class="level2">
 <h2 class="anchored" data-anchor-id="data">Data</h2>
 <p>Dataset contains both numeric and categorical data.</p>
-<p>Numeric data is: age, height, waist, eyesight, systolic and relaxed blood pressure, fasting blood sugar, cholesterol, triglyceride, serum creatinine, AST, ALT, Gtp</p>
-<p>Categorical data is: hearing, dental caries, smoking (target variable)</p>
-<p>Where does urine protein go?</p>
+<p>Numeric data are: age, height, waist, eyesight, systolic and relaxed blood pressure, fasting blood sugar, cholesterol, triglyceride, serum creatinine, AST, ALT, Gtp</p>
+<p>Categorical data are: urine protein, hearing, dental caries, smoking (target variable)</p>
 <section id="heatmap" class="level3">
 <h3 class="anchored" data-anchor-id="heatmap">Heatmap</h3>
-<div class="cell" data-execution_count="7">
+<div class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display">
-<p><img src="SmokerPrediction_files/figure-html/cell-8-output-1.png" width="727" height="605"></p>
+<p><img src="SmokerPrediction_files/figure-html/cell-7-output-1.png" width="727" height="605"></p>
 </div>
 </div>
 </section>
 <section id="age" class="level3">
 <h3 class="anchored" data-anchor-id="age">Age</h3>
+<p>From correlation heatmap we can see that age is negatively correlated with height, weight and eyesight. However, the correlation matrix is only done for numeric values, so let’s take a look on it’s relationship with categorical variables as well.</p>
+<div class="cell" data-execution_count="7">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-8-output-1.png" width="610" height="429"></p>
+</div>
+</div>
 <div class="cell" data-execution_count="8">
 <div class="cell-output cell-output-display">
-<p><img src="SmokerPrediction_files/figure-html/cell-9-output-1.png" width="610" height="429"></p>
+<p><img src="SmokerPrediction_files/figure-html/cell-9-output-1.png" width="593" height="429"></p>
 </div>
 </div>
 <div class="cell" data-execution_count="9">
 <div class="cell-output cell-output-display">
-<p><img src="SmokerPrediction_files/figure-html/cell-10-output-1.png" width="585" height="411"></p>
+<p><img src="SmokerPrediction_files/figure-html/cell-10-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="10">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-11-output-1.png" width="585" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="11">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-12-output-1.png" width="585" height="411"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="12">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-13-output-1.png" width="585" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="13">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-14-output-1.png" width="585" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="14">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-15-output-1.png" width="585" height="429"></p>
 </div>
 </div>
 </section>
 <section id="weight" class="level3">
 <h3 class="anchored" data-anchor-id="weight">Weight</h3>
+<p>From correlation heatmap, weight came out as positively correlated with waist and height. But it is also negatively correlated with HDL, so let’s take a look at that.</p>
+<div class="cell" data-execution_count="15">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-16-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="16">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-17-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="17">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-18-output-1.png" width="593" height="411"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="18">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-19-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="19">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-20-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="20">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-21-output-1.png" width="593" height="429"></p>
+</div>
+</div>
 </section>
 <section id="height" class="level3">
 <h3 class="anchored" data-anchor-id="height">Height</h3>
+<p>In correlation heatmap we can see that is slighty negatively correlated with age and HDL, and positively correlated with weight and hemoglobin.</p>
+<p>Let’s take a look at the hemoglobin relationship.</p>
+<div class="cell" data-execution_count="21">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-22-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="22">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-23-output-1.png" width="585" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="23">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-24-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="24">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-25-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="25">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-26-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="26">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-27-output-1.png" width="593" height="429"></p>
+</div>
+</div>
 </section>
 <section id="waist" class="level3">
 <h3 class="anchored" data-anchor-id="waist">Waist</h3>
+<p>Waist is highly correlated with weight and because of that, it should have similar relationships with other variables. So let’s just take a look at categorical variables right after looking at the histogram and Waist-Weight scatter plot.</p>
+<div class="cell" data-execution_count="27">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-28-output-1.png" width="618" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="28">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-29-output-1.png" width="593" height="431"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="29">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-30-output-1.png" width="593" height="431"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="30">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-31-output-1.png" width="593" height="431"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="31">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-32-output-1.png" width="593" height="431"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="32">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-33-output-1.png" width="593" height="431"></p>
+</div>
+</div>
 </section>
 <section id="eyesight-left-right" class="level3">
 <h3 class="anchored" data-anchor-id="eyesight-left-right">Eyesight [left, right]</h3>
+<p>For eyesight, there are cases of people being blind in one of their eyes (signaled by value 10 in eyesight) or being completely blind (only one case). We will take a look at histograms with eyesight better than 3 in both eyes</p>
+<div class="cell" data-execution_count="34">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-35-output-1.png" width="585" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="35">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-36-output-1.png" width="597" height="429"></p>
+</div>
+</div>
+<p>From scatter plots we can see that it is fairly symmetrical, so I will only use eyesight left for all the other plots, since they should look basically the same.</p>
+<div class="cell" data-execution_count="36">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-37-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="37">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-38-output-1.png" width="597" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="38">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-39-output-1.png" width="597" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="39">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-40-output-1.png" width="597" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="40">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-41-output-1.png" width="597" height="429"></p>
+</div>
+</div>
 </section>
 <section id="hearing-left-right" class="level3">
 <h3 class="anchored" data-anchor-id="hearing-left-right">Hearing [left, right]</h3>
+<p>Hearing is a categorical variable. Since for those we are looking at their relationships with each individual numerical variable in their section in this case we will compare it to other categorical variable and we will look at how much samples fall in each category.</p>
+<div class="cell" data-execution_count="41">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-42-output-1.png" width="618" height="431"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="42">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-43-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="43">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-44-output-1.png" width="576" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="44">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-45-output-1.png" width="618" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="45">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-46-output-1.png" width="610" height="429"></p>
+</div>
+</div>
 </section>
 <section id="systolic" class="level3">
 <h3 class="anchored" data-anchor-id="systolic">Systolic</h3>
+<p>Systolic blood pressure doesn’t really show any strong correlation on heatmap except for relaxation, which is most likely diastolic pressure. I will still take a look at it’s relationship with waist, since I would expect it to have some relationship.</p>
+<div class="cell" data-execution_count="46">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-47-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="47">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-48-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="48">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-49-output-1.png" width="593" height="431"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="49">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-50-output-1.png" width="593" height="411"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="50">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-51-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="51">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-52-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="52">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-53-output-1.png" width="593" height="429"></p>
+</div>
+</div>
 </section>
 <section id="relaxation" class="level3">
 <h3 class="anchored" data-anchor-id="relaxation">Relaxation</h3>
+<p>Since relaxation is quite similar to systolic pressure, I will only show histogram and plots with categorical variables</p>
+<div class="cell" data-execution_count="53">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-54-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="54">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-55-output-1.png" width="593" height="431"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="55">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-56-output-1.png" width="593" height="411"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="56">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-57-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="57">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-58-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="58">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-59-output-1.png" width="593" height="429"></p>
+</div>
+</div>
 </section>
 <section id="fasting-blood-sugar" class="level3">
 <h3 class="anchored" data-anchor-id="fasting-blood-sugar">Fasting blood sugar</h3>
+<p>Fasting blood sugar shows weak anti-correlation with HDL, so we can look at that. Otherwise the heatmap doesn’t really show anything of interest.</p>
+<p>Boxplot shows very strong outliers, expected fasting blood sugar in adults is between 70 and 100 mg/dL, values between 100 and 125 mg/dL should be an alarm for lifestyle change. Anything above means you are probably diabetic. Values of even 200 mg/dL seems very suspicous to me, so I will be removing them.</p>
+<div class="cell" data-execution_count="59">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-60-output-1.png" width="545" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="60">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>tmp <span class="op">=</span> data.loc[data[<span class="st">"fasting blood sugar"</span>] <span class="op">&lt;</span> <span class="dv">200</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="61">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-62-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="62">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-63-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="63">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-64-output-1.png" width="593" height="411"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="64">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-65-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="65">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-66-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="66">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-67-output-1.png" width="593" height="429"></p>
+</div>
+</div>
 </section>
 <section id="cholesterol" class="level3">
 <h3 class="anchored" data-anchor-id="cholesterol">Cholesterol</h3>
+<p>Cholesterol shows strong correlation with LDL.</p>
+<div class="cell" data-execution_count="67">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-68-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="68">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-69-output-1.png" width="602" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="69">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-70-output-1.png" width="593" height="411"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="70">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-71-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="71">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-72-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="72">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-73-output-1.png" width="593" height="429"></p>
+</div>
+</div>
 </section>
 <section id="triglyceride" class="level3">
 <h3 class="anchored" data-anchor-id="triglyceride">Triglyceride</h3>
+<p>Triglyceride refers to body fat and shows anti-correlation with HDL and correlations with weight and waist.</p>
+<p>Again, we have some outliers present, I will be removing anything above 400 since the number of deleted entries is negligable.</p>
+<div class="cell" data-execution_count="73">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-74-output-1.png" width="555" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="74">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>tmp <span class="op">=</span> data.loc[data[<span class="st">"triglyceride"</span>] <span class="op">&lt;</span> <span class="dv">400</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="75">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-76-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="76">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-77-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="77">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-78-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="78">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-79-output-1.png" width="593" height="431"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="79">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-80-output-1.png" width="593" height="411"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="80">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-81-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="81">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-82-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="82">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-83-output-1.png" width="593" height="429"></p>
+</div>
+</div>
 </section>
 <section id="hdl" class="level3">
 <h3 class="anchored" data-anchor-id="hdl">HDL</h3>
+<p>HDL (high-density lipoprotein) shows anti-correlation with weight, waist and triglyceride. All of those, except for waist, have been plotted so I will skip those here.</p>
+<div class="cell" data-execution_count="83">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-84-output-1.png" width="614" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="84">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-85-output-1.png" width="597" height="431"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="85">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-86-output-1.png" width="593" height="411"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="86">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-87-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="87">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-88-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="88">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-89-output-1.png" width="593" height="429"></p>
+</div>
+</div>
 </section>
 <section id="ldl" class="level3">
 <h3 class="anchored" data-anchor-id="ldl">LDL</h3>
+<p>LDL (low density lipoprotein) shows anti-correlation with weight and waist and correlation with cholesterol. Cholesterol has already been plotted, but waist and weight haven’t, so let’s do those.</p>
+<p>If we take a look at LDL boxplot, we can see that it has some very extreme outliers, so for the sake of plotting, I will filter those out here. And once we get to making predictors, I will also filter those out completely.</p>
+<div class="cell" data-execution_count="89">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-90-output-1.png" width="545" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="90">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>tmp <span class="op">=</span> data.loc[data[<span class="st">"LDL"</span>] <span class="op">&lt;</span> <span class="dv">500</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="91">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-92-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="92">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-93-output-1.png" width="593" height="431"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="93">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-94-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="94">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-95-output-1.png" width="593" height="411"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="95">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-96-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="96">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-97-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="97">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-98-output-1.png" width="593" height="429"></p>
+</div>
+</div>
 </section>
 <section id="hemoglobin" class="level3">
 <h3 class="anchored" data-anchor-id="hemoglobin">Hemoglobin</h3>
+<p>Hemoglobin shows correlation with weight and waist.</p>
+<div class="cell" data-execution_count="98">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-99-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="99">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-100-output-1.png" width="593" height="431"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="100">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-101-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="101">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-102-output-1.png" width="602" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="102">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-103-output-1.png" width="585" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="103">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-104-output-1.png" width="585" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="104">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-105-output-1.png" width="585" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="105">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-106-output-1.png" width="585" height="429"></p>
+</div>
+</div>
 </section>
 <section id="urine-protein" class="level3">
 <h3 class="anchored" data-anchor-id="urine-protein">Urine protein</h3>
+<p>Urine protein is a categorical variable and thus will be plotted with numerical variables in their section. Here I will be plotting it with other categorical variables (except with hearing)</p>
+<p>One oddity with urine protein is that normally it is measured in miligrams, but here it is in values between 1 and 6. Also, the values are heavily skewed towards 1, thus I will be likely removing this column altogether.</p>
+<div class="cell" data-execution_count="106">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-107-output-1.png" width="618" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="107">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-108-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="108">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-109-output-1.png" width="618" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="109">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-110-output-1.png" width="610" height="429"></p>
+</div>
+</div>
 </section>
 <section id="serum-creatinine" class="level3">
 <h3 class="anchored" data-anchor-id="serum-creatinine">Serum creatinine</h3>
+<p>Serum creatinine refers to how well kindeys are filtering the blood. In the heatmap, it shows some correlation with hemoglobin, height and weight.</p>
+<p>On boxplot we can see that creatinine also has quite big outliers, <a href="https://www.medicinenet.com/creatinine_blood_test/article.htm">according to this website</a> we should be expecting values between 0.5 and 1.2 mg. While I could expect 4 mg as an outlier, 10 seems to be quite overblown. For this I will be filtering out anything above 3 mg.</p>
+<div class="cell" data-execution_count="110">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-111-output-1.png" width="545" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="111">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>tmp <span class="op">=</span> data.loc[data[<span class="st">"serum creatinine"</span>] <span class="op">&lt;</span> <span class="dv">3</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="112">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-113-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="113">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-114-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="114">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-115-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="115">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-116-output-1.png" width="585" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="116">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-117-output-1.png" width="589" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="117">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-118-output-1.png" width="589" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="118">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-119-output-1.png" width="589" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="119">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-120-output-1.png" width="589" height="429"></p>
+</div>
+</div>
 </section>
 <section id="ast" class="level3">
 <h3 class="anchored" data-anchor-id="ast">AST</h3>
+<p>AST refers to an enzyme whose levels are used as markers of liver health. On the heatmap, it shows correlation with ALT, which is also used for liver diagnoses.</p>
+<p>Here we can see that this data set is very.. interesting. According to (this website)[https://www.medicalnewstoday.com/articles/320982#sgot-ranges] AST levels should be less than 40 U/L. Since size of this dataset is around 160 000 entries I will be aggresively removing everything above 100 U/L.</p>
+<div class="cell" data-execution_count="120">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-121-output-1.png" width="547" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="121">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>tmp <span class="op">=</span> data.loc[data[<span class="st">"AST"</span>] <span class="op">&lt;</span> <span class="dv">100</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="122">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-123-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="123">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-124-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="124">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-125-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="125">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-126-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="126">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-127-output-1.png" width="593" height="429"></p>
+</div>
+</div>
 </section>
 <section id="alt" class="level3">
 <h3 class="anchored" data-anchor-id="alt">ALT</h3>
+<p>ALT, as eluded to, is another enzyme that is used for liver diagnoses.</p>
+<p>As we can see here on boxplot, the outliers are quite outrageous. Accoring to (this website)[https://www.healthline.com/health/alt#results] healthy levels should be from 19 to 33 U/L. So once again, I will take aggressive measures and remove everything above 100 U/L.</p>
+<div class="cell" data-execution_count="127">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-128-output-1.png" width="552" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="128">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I will remove AST as well so I can scatter plot them</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>tmp <span class="op">=</span> data.loc[data[<span class="st">"ALT"</span>] <span class="op">&lt;</span> <span class="dv">100</span>]</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>tmp <span class="op">=</span> tmp.loc[tmp[<span class="st">"AST"</span>] <span class="op">&lt;</span> <span class="dv">100</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="129">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-130-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="130">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-131-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="131">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-132-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="132">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-133-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="133">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-134-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="134">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-135-output-1.png" width="593" height="429"></p>
+</div>
+</div>
 </section>
 <section id="gtp" class="level3">
 <h3 class="anchored" data-anchor-id="gtp">Gtp</h3>
+<p>GTP is quite an odd variable, wikipedia tells me that it is building block for synthesis o RNA, but doesn’t really talk about any diagnoses. And google doesn’t really help. It did find GGT measuring (on this website)[https://www.ucsfhealth.org/medical-tests/gamma-glutamyl-transferase-(ggt)-blood-test] which says that healthy levels are between 5 and 40 U/L.</p>
+<p>On this boxplot we can see that outliers are again quite big, so once again, I will take aggressive measures and remove everything above 100 U/L.</p>
+<div class="cell" data-execution_count="135">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-136-output-1.png" width="545" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="136">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="co"># I will remove AST as well so I can scatter plot them</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>tmp <span class="op">=</span> tmp.loc[tmp[<span class="st">"Gtp"</span>] <span class="op">&lt;</span> <span class="dv">100</span>]</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="137">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-138-output-1.png" width="610" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="138">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-139-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="139">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-140-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="140">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-141-output-1.png" width="593" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="141">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-142-output-1.png" width="593" height="429"></p>
+</div>
+</div>
 </section>
 <section id="dental-caries" class="level3">
 <h3 class="anchored" data-anchor-id="dental-caries">Dental caries</h3>
+<p>Categorical variable, it has already been plotted with all numeric variables and with urine protein and hearing. So I will only plot it with smoking.</p>
+<div class="cell" data-execution_count="142">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-143-output-1.png" width="618" height="429"></p>
+</div>
+</div>
+<div class="cell" data-execution_count="143">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-144-output-1.png" width="610" height="429"></p>
+</div>
+</div>
 </section>
 <section id="smoking" class="level3">
 <h3 class="anchored" data-anchor-id="smoking">Smoking</h3>
+<p>Since smoking has been plotted with everything there is, I will just write some of the relationships that I have noticed.</p>
+<div class="cell" data-execution_count="144">
+<div class="cell-output cell-output-display">
+<p><img src="SmokerPrediction_files/figure-html/cell-145-output-1.png" width="618" height="429"></p>
+</div>
+</div>
+<section id="interesting-relationships" class="level4">
+<h4 class="anchored" data-anchor-id="interesting-relationships">Interesting relationships</h4>
+<ul>
+<li>Younger people seemed to smoke more than older people</li>
+<li>People with higher weight are more likely to smoke</li>
+<li>Smokers are also taller on average</li>
+<li>It seems that in smokers levels of triglyceride are higher</li>
+<li>Smokers have lower levels of HDL</li>
+<li>Smokers have higher levels of hemoglobin</li>
+<li>Levels of serum creatinine are in much smaller ranges than in non-smokers</li>
+<li>GTP levels seem to be higher in smokers</li>
+<li>Dental caries are more common in smokers</li>
+</ul>
 </section>
+</section>
+<section id="conclusions-on-data" class="level3">
+<h3 class="anchored" data-anchor-id="conclusions-on-data">Conclusions on data</h3>
+<p>It seems that there are several variables based on which we could try to determine whether somebody is smoking or not.</p>
+<p>Dataset has several columns with huge outliers and those will be filtered out. Thankfully, the dataset is large enough so it wouldn’t really make a difference.</p>
+<p>Another thing is column “Urine protein” which just doesn’t seem to make any sense. Since it also seems very unhelpful, I will be removing it from the dataset.</p>
+<p>Big number of variables have largely differing value ranges and thus the will need to be normalized. For that I will try two approaches: - Standard score: <span class="math inline">\(x' = \dfrac{x-\mu}{\sigma}\)</span>, this should work since all the variables are resembling normal distribution. I haven’t done any actual statistical testing though - MinMax scaling: this will rescale variables to be between 0 and 1</p>
+<p>Since there aren’t that many strong correlations, I think that PCA won’t be particularly helpful, so I won’t be using it.</p>
+</section>
+</section>
+<section id="data-preparation-for-categorization" class="level2">
+<h2 class="anchored" data-anchor-id="data-preparation-for-categorization">Data preparation for categorization</h2>
+<p>The goal here is to filter out the outliers</p>
+<div class="cell" data-execution_count="145">
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> data.loc[data[<span class="st">"fasting blood sugar"</span>] <span class="op">&lt;</span> <span class="dv">200</span>]</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> data.loc[data[<span class="st">"triglyceride"</span>] <span class="op">&lt;</span> <span class="dv">400</span>]</span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> data.loc[data[<span class="st">"LDL"</span>] <span class="op">&lt;</span> <span class="dv">500</span>]</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> data.loc[data[<span class="st">"serum creatinine"</span>] <span class="op">&lt;</span> <span class="dv">3</span>]</span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> data.loc[data[<span class="st">"AST"</span>] <span class="op">&lt;</span> <span class="dv">100</span>]</span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> data.loc[data[<span class="st">"ALT"</span>] <span class="op">&lt;</span> <span class="dv">100</span>]</span>
+<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> data.loc[data[<span class="st">"Gtp"</span>] <span class="op">&lt;</span> <span class="dv">100</span>]</span>
+<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a><span class="co"># Change hearing back to numbers</span></span>
+<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Let's encode it as "Hearing" = 2, "One-deaf" = 1, "Deaf" = 0</span></span>
+<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>data[<span class="st">"hearing"</span>] <span class="op">=</span> data[<span class="st">"hearing"</span>].<span class="bu">map</span>({<span class="st">"Both deaf"</span>: <span class="dv">0</span>, <span class="st">"One deaf"</span>: <span class="dv">1</span>, <span class="st">"Both hearing"</span>: <span class="dv">2</span>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Here I will just separate out numeric and categorical variables. And also take extract out our target variable.</p>
+<div class="cell" data-execution_count="146">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>l_numeric <span class="op">=</span> [<span class="st">"age"</span>, <span class="st">"height(cm)"</span>, <span class="st">"weight(kg)"</span>, <span class="st">"waist(cm)"</span>, <span class="st">"eyesight(left)"</span>, <span class="st">"eyesight(right)"</span>, <span class="st">"systolic"</span>, <span class="st">"relaxation"</span>, <span class="st">"fasting blood sugar"</span>, <span class="st">"Cholesterol"</span>, <span class="st">"triglyceride"</span>, <span class="st">"HDL"</span>, <span class="st">"LDL"</span>, <span class="st">"hemoglobin"</span>, <span class="st">"serum creatinine"</span>, <span class="st">"AST"</span>, <span class="st">"ALT"</span>, <span class="st">"Gtp"</span>]</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Removal of Urine protein</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>l_categorical <span class="op">=</span> [<span class="st">"hearing"</span>, <span class="st">"dental caries"</span>]</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>numeric <span class="op">=</span> data[l_numeric]</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>categorical <span class="op">=</span> data[l_categorical]</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>target <span class="op">=</span> data[<span class="st">"smoking"</span>]</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>df <span class="op">=</span> data.drop(columns<span class="op">=</span>[<span class="st">"smoking"</span>])</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="training" class="level2">
+<h2 class="anchored" data-anchor-id="training">Training</h2>
+<section id="creating-transformers-for-data" class="level3">
+<h3 class="anchored" data-anchor-id="creating-transformers-for-data">Creating transformers for data</h3>
+<p>With that done, let’s create our preprocessors.</p>
+<p>For numerical values I will be using MinMaxScaler for one attempt and StandardScaler for the other.</p>
+<p>For categorical variables I will use OneHotEncoder, this means that hearing will be split into three distinct columns.</p>
+<div class="cell" data-execution_count="147">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>minmax_scaler <span class="op">=</span> MinMaxScaler().set_output(transform<span class="op">=</span><span class="st">"pandas"</span>)</span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>standard_scaler <span class="op">=</span> StandardScaler().set_output(transform<span class="op">=</span><span class="st">"pandas"</span>)</span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>onehot_encoder <span class="op">=</span> OneHotEncoder(sparse_output<span class="op">=</span><span class="va">False</span>).set_output(transform<span class="op">=</span><span class="st">"pandas"</span>)</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Let's also create preprocessor that will do all of this stuff for us in one fell swoop</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>minmax_prep <span class="op">=</span> ColumnTransformer(</span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    [</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"one-hot-encoder"</span>, onehot_encoder, l_categorical),</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"minmax_scaler"</span>, minmax_scaler, l_numeric)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>standard_prep <span class="op">=</span> ColumnTransformer(</span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    [</span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"one-hot-encoder"</span>, onehot_encoder, l_categorical),</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a>        (<span class="st">"standard_scaler"</span>, standard_scaler, l_numeric)</span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    ]</span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let’s get us some training and testing data.</p>
+<div class="cell" data-execution_count="148">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>Xmm <span class="op">=</span> minmax_prep.fit_transform(df)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>Xstd <span class="op">=</span> standard_prep.fit_transform(df) </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>Xmm_train, Xmm_test, ymm_train, ymm_test <span class="op">=</span> train_test_split(Xmm, target, test_size<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>Xstd_train, Xstd_test, ystd_train, ystd_test <span class="op">=</span> train_test_split(Xstd, target, test_size<span class="op">=</span><span class="fl">0.4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-execution_count="149">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>mm_log_reg <span class="op">=</span> <span class="va">None</span></span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>std_log_reg <span class="op">=</span> <span class="va">None</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="training-logistic-regression" class="level3">
+<h3 class="anchored" data-anchor-id="training-logistic-regression">Training Logistic regression</h3>
+<div class="cell" data-execution_count="150">
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>mm_log_reg <span class="op">=</span> LogisticRegressionCV(max_iter<span class="op">=</span><span class="dv">500</span>, cv<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>mm_log_reg.fit(Xmm_train, ymm_train)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>std_log_reg <span class="op">=</span> LogisticRegressionCV(max_iter<span class="op">=</span><span class="dv">500</span>, cv<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>std_log_reg.fit(Xstd_train, ystd_train)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using logistic regression: </span><span class="sc">{</span>mm_log_reg<span class="sc">.</span>score(Xmm_test, ymm_test)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using logistic regression: </span><span class="sc">{</span>std_log_reg<span class="sc">.</span>score(Xstd_test, ystd_test)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Accuracy of MinMax scaling using logistic regression: 0.7494880322416816
+Accuracy of standard scaling using logistic regression: 0.7506348400203149</code></pre>
+</div>
+</div>
+<p>Here we can see that we have about the same accuracy for both minmax and standard scaling, with the score being ~0.749, and standard scaling is performing slightly worse.</p>
+<p>Now let’s try to take a look if we can perform slightly better with some other methods</p>
+</section>
+<section id="random-forest-classifier" class="level3">
+<h3 class="anchored" data-anchor-id="random-forest-classifier">Random forest classifier</h3>
+<p>For random forest classifier I decided to use RandomizedSearch with cross validation to find optimal parameters.</p>
+<div class="cell" data-execution_count="151">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>parameters <span class="op">=</span> {<span class="st">'n_estimators'</span> : np.arange(<span class="dv">10</span>,<span class="dv">100</span>)}</span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>mm_forest <span class="op">=</span> RandomizedSearchCV(RandomForestClassifier(), parameters)</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>mm_forest.fit(Xmm_train, ymm_train)</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>std_forest <span class="op">=</span> RandomizedSearchCV(RandomForestClassifier(), parameters)</span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>std_forest.fit(Xstd_train, ystd_train)</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using random forest: </span><span class="sc">{</span>mm_forest<span class="sc">.</span>best_score_<span class="sc">}</span><span class="ss"> with estimators </span><span class="sc">{</span>mm_forest<span class="sc">.</span>best_estimator_<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using random forest: </span><span class="sc">{</span>std_forest<span class="sc">.</span>best_score_<span class="sc">}</span><span class="ss"> with estimators </span><span class="sc">{</span>std_forest<span class="sc">.</span>best_estimator_<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Accuracy of MinMax scaling using random forest: 0.7738021437958533 with estimators RandomForestClassifier(n_estimators=93)
+Accuracy of standard scaling using random forest: 0.7724259075376918 with estimators RandomForestClassifier(n_estimators=99)</code></pre>
+</div>
+</div>
+<p>For random forest classifier we can see that the accuracy has risen compared to logistic regression. MinMax scaling is still performing very slightly better than standard scaling.</p>
+</section>
+<section id="svm" class="level3">
+<h3 class="anchored" data-anchor-id="svm">SVM</h3>
+<p>While I have planned to compare several SVM kernels, given the sheer size of my dataset and severe limitations on time I can spend on this, taking into account rendering the document, I will use only RBF kernel, which has performed best in my testing.</p>
+<div class="cell" data-execution_count="152">
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>mm_svm <span class="op">=</span> SVC(kernel<span class="op">=</span><span class="st">'rbf'</span>, gamma<span class="op">=</span><span class="st">'scale'</span>)</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>std_svm <span class="op">=</span> SVC(kernel<span class="op">=</span><span class="st">'rbf'</span>, gamma<span class="op">=</span><span class="st">'scale'</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>mm_svm.fit(Xmm_train, ymm_train)</span>
+<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>std_svm.fit(Xstd_train, ystd_train)</span>
+<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using SVM: </span><span class="sc">{</span>mm_svm<span class="sc">.</span>score(Xmm_test, ymm_test)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using SVM: </span><span class="sc">{</span>std_svm<span class="sc">.</span>score(Xstd_test, ystd_test)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Accuracy of MinMax scaling using SVM: 0.7680007863824768
+Accuracy of standard scaling using SVM: 0.7721129114172905</code></pre>
+</div>
+</div>
+<p>If we look at results here, standard scaling is finally outperforming minmax and by non-negligable ammount.</p>
+</section>
+<section id="sgd-classifier" class="level3">
+<h3 class="anchored" data-anchor-id="sgd-classifier">SGD Classifier</h3>
+<p>One thing that apparently performs pretty well on large samples is SGD Classifier, so I would like to test it here.</p>
+<div class="cell" data-execution_count="153">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>mm_sgd <span class="op">=</span> SGDClassifier()</span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>std_sgd <span class="op">=</span> SGDClassifier()</span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>mm_sgd.fit(Xmm_train, ymm_train)</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>std_sgd.fit(Xstd_train, ystd_train)</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using SGD: </span><span class="sc">{</span>mm_sgd<span class="sc">.</span>score(Xmm_test, ymm_test)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using SGD: </span><span class="sc">{</span>std_sgd<span class="sc">.</span>score(Xstd_test, ystd_test)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Accuracy of MinMax scaling using SGD: 0.7537803699274235
+Accuracy of standard scaling using SGD: 0.7530431363554448</code></pre>
+</div>
+</div>
+<p>By itself SGD doesn’t really perform that well. Let’s try to use kernel approximation with RBF sampler, since it RBF performed so well with SVM</p>
+<div class="cell" data-execution_count="154">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>mm_sgd_rbf <span class="op">=</span> SGDClassifier()</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>std_sgd_rbf <span class="op">=</span> SGDClassifier()</span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>sampler <span class="op">=</span> RBFSampler()</span>
+<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>Xmm_rbf <span class="op">=</span> sampler.fit_transform(Xmm)</span>
+<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>Xstd_rbf <span class="op">=</span> sampler.fit_transform(Xstd)</span>
+<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>Xmm_rbf_train, Xmm_rbf_test, ymm_rbf_train, ymm_rbf_test <span class="op">=</span> train_test_split(Xmm, target, test_size<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>Xstd_rbf_train, Xstd_rbf_test, ystd_rbf_train, ystd_rbf_test <span class="op">=</span> train_test_split(Xstd, target, test_size<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>mm_sgd_rbf.fit(Xmm_rbf_train, ymm_rbf_train)</span>
+<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>std_sgd_rbf.fit(Xstd_rbf_train, ystd_rbf_train)</span>
+<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using SGD with RBF kernel: </span><span class="sc">{</span>mm_sgd_rbf<span class="sc">.</span>score(Xmm_rbf_test, ymm_rbf_test)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using SGD with RBF kernel: </span><span class="sc">{</span>std_sgd_rbf<span class="sc">.</span>score(Xstd_rbf_test, ystd_rbf_test)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Accuracy of MinMax scaling using SGD with RBF kernel: 0.7503399465915235
+Accuracy of standard scaling using SGD with RBF kernel: 0.7518307967037468</code></pre>
+</div>
+</div>
+<p>There was an attempt, maybe by testing more kernel approximations I could get somewhere, but I will leave that be.</p>
+</section>
+<section id="conclusion" class="level3">
+<h3 class="anchored" data-anchor-id="conclusion">Conclusion</h3>
+<p>For Logistic regression, minmax scaling had better performance, but by negligable ammount.</p>
+<p>For random forest minmax also took the cake, but again, by negligable ammount</p>
+<p>When it came to SVM however, standard scaling had better performance than minmax scaling. The difference this time was, however, quite substantial.</p>
+<p>Now, let’s compare how each method fared for both minmax and standard</p>
+<p>Minmax:</p>
+<ol type="1">
+<li>Random Forest</li>
+<li>SVM</li>
+<li>SGD</li>
+<li>SGD with RBF kernel approximation</li>
+<li>Logistic regression</li>
+</ol>
+<p>Standard scaling:</p>
+<ol type="1">
+<li>SVM</li>
+<li>Random Forest</li>
+<li>SGD</li>
+<li>SDG with RBF kernel approximation</li>
+<li>Logistic regression</li>
+</ol>
+<p>When comparing random forest for MinMax and SVM for standard scaling, it seems that SVM for standard scaling comes on top, so I will be using that for the actual sumbmission.</p>
+</section>
+</section>
+<section id="submission-of-my-predictions" class="level2">
+<h2 class="anchored" data-anchor-id="submission-of-my-predictions">Submission of my predictions</h2>
+<p>Data to classify for the submission is in <em>test.csv</em> file, so let’s get the data in.</p>
+<div class="cell" data-execution_count="155">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>test_data <span class="op">=</span> pd.read_csv(<span class="st">'Smokers/test.csv'</span>, index_col<span class="op">=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Since submission is in format [id, smoking] let’s check to make sure that the id’s match up</p>
+<div class="cell" data-execution_count="156">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Head"</span>)</span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(test_data.head(), <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Tail"</span>)</span>
+<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(test_data.tail(), <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Head
+        age  height(cm)  weight(kg)  waist(cm)  eyesight(left)  \
+id                                                               
+159256   40         165          70       84.0             1.2   
+159257   80         160          60       93.0             1.0   
+159258   60         170          70       86.5             0.6   
+159259   40         160          50       67.0             0.3   
+159260   40         170          75       89.4             1.0   
+
+        eyesight(right)  hearing(left)  hearing(right)  systolic  relaxation  \
+id                                                                             
+159256              1.2              1               1       130          89   
+159257              1.0              2               2       144          72   
+159258              0.7              1               1       117          75   
+159259              0.4              1               1       116          62   
+159260              0.9              1               1       132          94   
+
+        ...  triglyceride  HDL  LDL  hemoglobin  Urine protein  \
+id      ...                                                      
+159256  ...           186   49  115        14.2              1   
+159257  ...           158   35  104        13.0              1   
+159258  ...           173   39   88        15.4              1   
+159259  ...            47   75  128        14.5              1   
+159260  ...           100   39  123        16.5              1   
+
+        serum creatinine  AST  ALT  Gtp  dental caries  
+id                                                      
+159256               0.9   19   25   32              0  
+159257               1.1   20   12   24              0  
+159258               1.4   38   60   36              0  
+159259               0.6   25   18   10              1  
+159260               1.0   30   39   27              1  
+
+[5 rows x 22 columns] 
+
+Tail
+        age  height(cm)  weight(kg)  waist(cm)  eyesight(left)  \
+id                                                               
+265422   40         165          60       78.0             0.8   
+265423   40         170          85       95.0             1.2   
+265424   35         170          85       89.0             1.2   
+265425   40         160          60       67.0             0.7   
+265426   50         150          50       80.0             0.9   
+
+        eyesight(right)  hearing(left)  hearing(right)  systolic  relaxation  \
+id                                                                             
+265422              0.9              1               1       112          78   
+265423              1.2              1               1       130          90   
+265424              1.2              1               1       131          86   
+265425              0.8              1               1       120          80   
+265426              1.0              1               1       115          67   
+
+        ...  triglyceride  HDL  LDL  hemoglobin  Urine protein  \
+id      ...                                                      
+265422  ...            82   59  149        16.4              1   
+265423  ...           186   44  100        16.0              2   
+265424  ...            76   53  142        15.9              1   
+265425  ...            81   55  103        13.9              1   
+265426  ...            96   48  144        13.0              1   
+
+        serum creatinine  AST  ALT  Gtp  dental caries  
+id                                                      
+265422               1.1   24   31   28              0  
+265423               1.0   25   31   38              0  
+265424               0.8   33   32   24              1  
+265425               0.6   42   36   32              0  
+265426               0.6   18   11   17              1  
+
+[5 rows x 22 columns] 
+</code></pre>
+</div>
+</div>
+<p>Id’s are matching up, so we can proceed to pre-preprocessing.</p>
+<p>The only thing I will need to do here is to merge hearing (left) and (right) in the same way I did in the training part. Then Sklearn can take the wheel.</p>
+<div class="cell" data-execution_count="157">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>idx <span class="op">=</span> [<span class="st">"Both hearing"</span>, <span class="st">"One deaf"</span>, <span class="st">"Both deaf"</span>]</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>hear <span class="op">=</span> test_data.loc[:, [<span class="st">"hearing(left)"</span>, <span class="st">"hearing(right)"</span>]]</span>
+<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>hearing <span class="op">=</span> []</span>
+<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, row <span class="kw">in</span> hear.iterrows():</span>
+<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    hearing.append(idx[row.iloc[<span class="dv">0</span>] <span class="op">+</span> row.iloc[<span class="dv">1</span>] <span class="op">-</span> <span class="dv">2</span>])</span>
+<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>test_data.loc[:, <span class="st">"hearing"</span>] <span class="op">=</span> hearing</span>
+<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>test_data[<span class="st">"hearing"</span>] <span class="op">=</span> test_data[<span class="st">"hearing"</span>].<span class="bu">map</span>({<span class="st">"Both deaf"</span>: <span class="dv">0</span>, <span class="st">"One deaf"</span>: <span class="dv">1</span>, <span class="st">"Both hearing"</span>: <span class="dv">2</span>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>So now we just transform our data and feed it to out trained SVM classifier</p>
+<div class="cell" data-execution_count="158">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> standard_prep.fit_transform(test_data)</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>prediction <span class="op">=</span> std_svm.predict(X)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>After getting prediction from the SVM model it’s time to put it into a dataframe and export it as an csv file.</p>
+<div class="cell" data-execution_count="159">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>test_data[<span class="st">"smoking"</span>] <span class="op">=</span> prediction</span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> test_data[<span class="st">"smoking"</span>]</span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(output.head())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>id
+159256    1
+159257    0
+159258    0
+159259    0
+159260    1
+Name: smoking, dtype: int64</code></pre>
+</div>
+</div>
+<div class="sourceCode" id="cb33"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>output.to_csv(<span class="st">'Smokers/my_submission.csv'</span>)</span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</section>
+<section id="results" class="level2">
+<h2 class="anchored" data-anchor-id="results">Results</h2>
+<p>And here we go, those are the results of my work. Public score of 0.78 and private 0.778.</p>
+<div class="quarto-figure quarto-figure-center">
+<figure class="figure">
+<p><img src="Results.png" class="img-fluid figure-img"></p>
+<figcaption class="figure-caption">results</figcaption>
+</figure>
+</div>
 </section>
 
 </main>
