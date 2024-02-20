@@ -5,9 +5,15 @@ toc: true
 toc-title: "Table of contents"
 ---
 
+## Intro
+
+This semestral work is focused on prediction of whether a person is a smoker or not, based on biological data such as height, weight, blood pressure, etc.
+
+This work is tied to Kaggle competition with name [Binary Prediction of Smoker Status using Bio-Signals](https://www.kaggle.com/competitions/playground-series-s3e24/overview).
+
 ## Reading and preprocessing data
 
-Data taken from [Kaggle coding competition on smoker prediction](https://www.kaggle.com/competitions/playground-series-s3e24/overview)  
+Those are all of the libraries and functions used for this project.
 
 ``` {python}
 import numpy as np
@@ -22,7 +28,6 @@ from sklearn.svm import SVC
 from sklearn.model_selection import train_test_split, cross_validate, RandomizedSearchCV
 from sklearn.compose import ColumnTransformer
 ```
-
 
 ```{python, echo=FALSE}
 pd.set_option("display.precision", 2)
@@ -39,7 +44,9 @@ data.head()
 data.describe()
 ```
 
-Making hearing left and hearing right into one variable for better plotting
+In the dataset we can notice that hearing is split into hearing left and right, with 1 indicating good hearing, and 2 indicating deafness (presumably).
+
+For the sake of easier plotting and clearer interpretation, I will combine them into one variable and ommit which ear is deaf.
 
 ```{python}
 idx = ["Both hearing", "One deaf", "Both deaf"]
@@ -50,7 +57,7 @@ for index, row in hear.iterrows():
 data.loc[:, "hearing"] = hearing
 ```
 
-Separating out numeric and categorial variables
+In case of other variables I see no need to immidiately edit them.
 
 ## Data
 
@@ -61,6 +68,8 @@ Numeric data are: age, height, waist, eyesight, systolic and relaxed blood press
 Categorical data are: urine protein, hearing, dental caries, smoking (target variable)
 
 ### Heatmap
+
+Let's take a look at the correlation matrix for all of numeric variables.
 
 ```{python}
 #| echo: false
@@ -73,6 +82,10 @@ corr = numeric.corr()
 sns.heatmap(corr, cmap="Spectral")
 plt.show()
 ```
+
+There are some correlations, although it they don't seem to be too strong for the most part.
+
+Here I will dedicate whole section to each variable where I will be plotting them with variables which showed some correlation and with categorical variables (in case of section of numeric variables).
 
 ### Age
 
@@ -852,7 +865,7 @@ plt.show()
 
 AST refers to an enzyme whose levels are used as markers of liver health. On the heatmap, it shows correlation with ALT, which is also used for liver diagnoses.
 
-Here we can see that this data set is very.. interesting. According to (this website)[https://www.medicalnewstoday.com/articles/320982#sgot-ranges] AST levels should be less than 40 U/L. Since size of this dataset is around 160 000 entries I will be aggresively removing everything above 100 U/L.
+Here we can see that this data set is very.. interesting. According to [this website](https://www.medicalnewstoday.com/articles/320982#sgot-ranges) AST levels should be less than 40 U/L. Since size of this dataset is around 160 000 entries I will be aggresively removing everything above 100 U/L.
 
 ```{python}
 #| echo: false
@@ -898,7 +911,7 @@ plt.show()
 
 ALT, as eluded to, is another enzyme that is used for liver diagnoses.
 
-As we can see here on boxplot, the outliers are quite outrageous. Accoring to (this website)[https://www.healthline.com/health/alt#results] healthy levels should be from 19 to 33 U/L. So once again, I will take aggressive measures and remove everything above 100 U/L.
+As we can see here on boxplot, the outliers are quite outrageous. Accoring to [this website](https://www.healthline.com/health/alt#results) healthy levels should be from 19 to 33 U/L. So once again, I will take aggressive measures and remove everything above 100 U/L.
 
 ```{python}
 #| echo: false
@@ -950,7 +963,7 @@ plt.show()
 
 ### Gtp
 
-GTP is quite an odd variable, wikipedia tells me that it is building block for synthesis o RNA, but doesn't really talk about any diagnoses. And google doesn't really help. It did find GGT measuring (on this website)[https://www.ucsfhealth.org/medical-tests/gamma-glutamyl-transferase-(ggt)-blood-test] which says that healthy levels are between 5 and 40 U/L.
+GTP is quite an odd variable, wikipedia tells me that it is building block for synthesis o RNA, but doesn't really talk about any diagnoses. And google doesn't really help. It did find GGT measuring [on this website](https://www.ucsfhealth.org/medical-tests/gamma-glutamyl-transferase-(ggt)-blood-test) which says that healthy levels are between 5 and 40 U/L.
 
 On this boxplot we can see that outliers are again quite big, so once again, I will take aggressive measures and remove everything above 100 U/L.
 
@@ -1057,7 +1070,7 @@ Since there aren't that many strong correlations, I think that PCA won't be part
 
 ## Data preparation for categorization
 
-The goal here is to filter out the outliers
+The goal here is to filter out the outliers. Since I will be using one hot encoder I will also need to transform hearing from text values back to numbers. Since it will be separated into three distinct columns the values themselves don't really matter, but let's go with the number of hearing ears.
 
 ```{python}
 data = data.loc[data["fasting blood sugar"] < 200]
@@ -1073,8 +1086,7 @@ data = data.loc[data["Gtp"] < 100]
 data["hearing"] = data["hearing"].map({"Both deaf": 0, "One deaf": 1, "Both hearing": 2})
 ```
 
-
-Here I will just separate out numeric and categorical variables. And also take extract out our target variable.
+Here I will just separate out numeric and categorical variables. And also take extract the target variable.
 
 ```{python}
 l_numeric = ["age", "height(cm)", "weight(kg)", "waist(cm)", "eyesight(left)", "eyesight(right)", "systolic", "relaxation", "fasting blood sugar", "Cholesterol", "triglyceride", "HDL", "LDL", "hemoglobin", "serum creatinine", "AST", "ALT", "Gtp"]
@@ -1095,9 +1107,14 @@ df = data.drop(columns=["smoking"])
 
 With that done, let's create our preprocessors. 
 
-For numerical values I will be using MinMaxScaler for one attempt and StandardScaler for the other. 
+For numerical values I will be using MinMaxScaler for one attempt and StandardScaler for another. 
 
 For categorical variables I will use OneHotEncoder, this means that hearing will be split into three distinct columns.
+
+What we will end up with are 2 preprocessors:
+
+- One hot encoder + MinMax scaling
+- One hot encoder + Standard scaling
 
 ```{python}
 minmax_scaler = MinMaxScaler().set_output(transform="pandas")
@@ -1120,7 +1137,7 @@ standard_prep = ColumnTransformer(
 )
 ```
 
-Let's get us some training and testing data.
+Let's get us some training and testing data for each of the column transformer.
 
 ```{python}
 Xmm = minmax_prep.fit_transform(df)
@@ -1128,11 +1145,6 @@ Xstd = standard_prep.fit_transform(df)
 
 Xmm_train, Xmm_test, ymm_train, ymm_test = train_test_split(Xmm, target, test_size=0.4)
 Xstd_train, Xstd_test, ystd_train, ystd_test = train_test_split(Xstd, target, test_size=0.4)
-```
-
-```{python}
-mm_log_reg = None
-std_log_reg = None
 ```
 
 ### Training Logistic regression
