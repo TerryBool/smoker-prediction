@@ -9,7 +9,7 @@ toc-title: "Table of contents"
 
 This semestral work is focused on prediction of whether a person is a smoker or not, based on biological data such as height, weight, blood pressure, etc.
 
-This work is tied to Kaggle competition with name [Binary Prediction of Smoker Status using Bio-Signals](https://www.kaggle.com/competitions/playground-series-s3e24/overview).
+This work is tied to Kaggle competition with the name of [Binary Prediction of Smoker Status using Bio-Signals](https://www.kaggle.com/competitions/playground-series-s3e24/overview).
 
 ## Reading and preprocessing data
 

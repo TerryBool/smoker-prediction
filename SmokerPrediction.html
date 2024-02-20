@@ -84,7 +84,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     <h2 id="toc-title">Table of contents</h2>
    
   <ul>
-  <li><a href="#reading-and-preprocessing-data" id="toc-reading-and-preprocessing-data" class="nav-link active" data-scroll-target="#reading-and-preprocessing-data">Reading and preprocessing data</a></li>
+  <li><a href="#intro" id="toc-intro" class="nav-link active" data-scroll-target="#intro">Intro</a></li>
+  <li><a href="#reading-and-preprocessing-data" id="toc-reading-and-preprocessing-data" class="nav-link" data-scroll-target="#reading-and-preprocessing-data">Reading and preprocessing data</a></li>
   <li><a href="#data" id="toc-data" class="nav-link" data-scroll-target="#data">Data</a>
   <ul class="collapse">
   <li><a href="#heatmap" id="toc-heatmap" class="nav-link" data-scroll-target="#heatmap">Heatmap</a></li>
@@ -145,9 +146,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 </header>
 
+<section id="intro" class="level2">
+<h2 class="anchored" data-anchor-id="intro">Intro</h2>
+<p>This semestral work is focused on prediction of whether a person is a smoker or not, based on biological data such as height, weight, blood pressure, etc.</p>
+<p>This work is tied to Kaggle competition with the name of <a href="https://www.kaggle.com/competitions/playground-series-s3e24/overview">Binary Prediction of Smoker Status using Bio-Signals</a>.</p>
+</section>
 <section id="reading-and-preprocessing-data" class="level2">
 <h2 class="anchored" data-anchor-id="reading-and-preprocessing-data">Reading and preprocessing data</h2>
-<p>Data taken from <a href="https://www.kaggle.com/competitions/playground-series-s3e24/overview">Kaggle coding competition on smoker prediction</a></p>
+<p>Those are all of the libraries and functions used for this project.</p>
 <div class="cell" data-execution_count="1">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> numpy <span class="im">as</span> np</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="im">import</span> pandas <span class="im">as</span> pd</span>
@@ -581,7 +587,8 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </div>
 </div>
 </div>
-<p>Making hearing left and hearing right into one variable for better plotting</p>
+<p>In the dataset we can notice that hearing is split into hearing left and right, with 1 indicating good hearing, and 2 indicating deafness (presumably).</p>
+<p>For the sake of easier plotting and clearer interpretation, I will combine them into one variable and ommit which ear is deaf.</p>
 <div class="cell" data-execution_count="5">
 <div class="sourceCode cell-code" id="cb3"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>idx <span class="op">=</span> [<span class="st">"Both hearing"</span>, <span class="st">"One deaf"</span>, <span class="st">"Both deaf"</span>]</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>hear <span class="op">=</span> data.loc[:, [<span class="st">"hearing(left)"</span>, <span class="st">"hearing(right)"</span>]]</span>
@@ -590,7 +597,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    hearing.append(idx[row.iloc[<span class="dv">0</span>] <span class="op">+</span> row.iloc[<span class="dv">1</span>] <span class="op">-</span> <span class="dv">2</span>])</span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>data.loc[:, <span class="st">"hearing"</span>] <span class="op">=</span> hearing</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Separating out numeric and categorial variables</p>
+<p>In case of other variables I see no need to immidiately edit them.</p>
 </section>
 <section id="data" class="level2">
 <h2 class="anchored" data-anchor-id="data">Data</h2>
@@ -599,11 +606,14 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>Categorical data are: urine protein, hearing, dental caries, smoking (target variable)</p>
 <section id="heatmap" class="level3">
 <h3 class="anchored" data-anchor-id="heatmap">Heatmap</h3>
+<p>Let’s take a look at the correlation matrix for all of numeric variables.</p>
 <div class="cell" data-execution_count="6">
 <div class="cell-output cell-output-display">
 <p><img src="SmokerPrediction_files/figure-html/cell-7-output-1.png" width="727" height="605"></p>
 </div>
 </div>
+<p>There are some correlations, although it they don’t seem to be too strong for the most part.</p>
+<p>Here I will dedicate whole section to each variable where I will be plotting them with variables which showed some correlation and with categorical variables (in case of section of numeric variables).</p>
 </section>
 <section id="age" class="level3">
 <h3 class="anchored" data-anchor-id="age">Age</h3>
@@ -1231,7 +1241,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="ast" class="level3">
 <h3 class="anchored" data-anchor-id="ast">AST</h3>
 <p>AST refers to an enzyme whose levels are used as markers of liver health. On the heatmap, it shows correlation with ALT, which is also used for liver diagnoses.</p>
-<p>Here we can see that this data set is very.. interesting. According to (this website)[https://www.medicalnewstoday.com/articles/320982#sgot-ranges] AST levels should be less than 40 U/L. Since size of this dataset is around 160 000 entries I will be aggresively removing everything above 100 U/L.</p>
+<p>Here we can see that this data set is very.. interesting. According to <a href="https://www.medicalnewstoday.com/articles/320982#sgot-ranges">this website</a> AST levels should be less than 40 U/L. Since size of this dataset is around 160 000 entries I will be aggresively removing everything above 100 U/L.</p>
 <div class="cell" data-execution_count="120">
 <div class="cell-output cell-output-display">
 <p><img src="SmokerPrediction_files/figure-html/cell-121-output-1.png" width="547" height="429"></p>
@@ -1269,7 +1279,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="alt" class="level3">
 <h3 class="anchored" data-anchor-id="alt">ALT</h3>
 <p>ALT, as eluded to, is another enzyme that is used for liver diagnoses.</p>
-<p>As we can see here on boxplot, the outliers are quite outrageous. Accoring to (this website)[https://www.healthline.com/health/alt#results] healthy levels should be from 19 to 33 U/L. So once again, I will take aggressive measures and remove everything above 100 U/L.</p>
+<p>As we can see here on boxplot, the outliers are quite outrageous. Accoring to <a href="https://www.healthline.com/health/alt#results">this website</a> healthy levels should be from 19 to 33 U/L. So once again, I will take aggressive measures and remove everything above 100 U/L.</p>
 <div class="cell" data-execution_count="127">
 <div class="cell-output cell-output-display">
 <p><img src="SmokerPrediction_files/figure-html/cell-128-output-1.png" width="552" height="429"></p>
@@ -1313,7 +1323,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 </section>
 <section id="gtp" class="level3">
 <h3 class="anchored" data-anchor-id="gtp">Gtp</h3>
-<p>GTP is quite an odd variable, wikipedia tells me that it is building block for synthesis o RNA, but doesn’t really talk about any diagnoses. And google doesn’t really help. It did find GGT measuring (on this website)[https://www.ucsfhealth.org/medical-tests/gamma-glutamyl-transferase-(ggt)-blood-test] which says that healthy levels are between 5 and 40 U/L.</p>
+<p>GTP is quite an odd variable, wikipedia tells me that it is building block for synthesis o RNA, but doesn’t really talk about any diagnoses. And google doesn’t really help. It did find GGT measuring <a href="https://www.ucsfhealth.org/medical-tests/gamma-glutamyl-transferase-(ggt)-blood-test">on this website</a> which says that healthy levels are between 5 and 40 U/L.</p>
 <p>On this boxplot we can see that outliers are again quite big, so once again, I will take aggressive measures and remove everything above 100 U/L.</p>
 <div class="cell" data-execution_count="135">
 <div class="cell-output cell-output-display">
@@ -1392,13 +1402,17 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <p>It seems that there are several variables based on which we could try to determine whether somebody is smoking or not.</p>
 <p>Dataset has several columns with huge outliers and those will be filtered out. Thankfully, the dataset is large enough so it wouldn’t really make a difference.</p>
 <p>Another thing is column “Urine protein” which just doesn’t seem to make any sense. Since it also seems very unhelpful, I will be removing it from the dataset.</p>
-<p>Big number of variables have largely differing value ranges and thus the will need to be normalized. For that I will try two approaches: - Standard score: <span class="math inline">\(x' = \dfrac{x-\mu}{\sigma}\)</span>, this should work since all the variables are resembling normal distribution. I haven’t done any actual statistical testing though - MinMax scaling: this will rescale variables to be between 0 and 1</p>
+<p>Big number of variables have largely differing value ranges and thus the will need to be normalized. For that I will try two approaches:</p>
+<ul>
+<li>Standard score: <span class="math inline">\(x' = \dfrac{x-\mu}{\sigma}\)</span>, this should work since all the variables are resembling normal distribution. I haven’t done any actual statistical testing though</li>
+<li>MinMax scaling: this will rescale variables to be between 0 and 1</li>
+</ul>
 <p>Since there aren’t that many strong correlations, I think that PCA won’t be particularly helpful, so I won’t be using it.</p>
 </section>
 </section>
 <section id="data-preparation-for-categorization" class="level2">
 <h2 class="anchored" data-anchor-id="data-preparation-for-categorization">Data preparation for categorization</h2>
-<p>The goal here is to filter out the outliers</p>
+<p>The goal here is to filter out the outliers. Since I will be using one hot encoder I will also need to transform hearing from text values back to numbers. Since it will be separated into three distinct columns the values themselves don’t really matter, but let’s go with the number of hearing ears.</p>
 <div class="cell" data-execution_count="145">
 <div class="sourceCode cell-code" id="cb11"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> data.loc[data[<span class="st">"fasting blood sugar"</span>] <span class="op">&lt;</span> <span class="dv">200</span>]</span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>data <span class="op">=</span> data.loc[data[<span class="st">"triglyceride"</span>] <span class="op">&lt;</span> <span class="dv">400</span>]</span>
@@ -1412,7 +1426,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="co"># Let's encode it as "Hearing" = 2, "One-deaf" = 1, "Deaf" = 0</span></span>
 <span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a>data[<span class="st">"hearing"</span>] <span class="op">=</span> data[<span class="st">"hearing"</span>].<span class="bu">map</span>({<span class="st">"Both deaf"</span>: <span class="dv">0</span>, <span class="st">"One deaf"</span>: <span class="dv">1</span>, <span class="st">"Both hearing"</span>: <span class="dv">2</span>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Here I will just separate out numeric and categorical variables. And also take extract out our target variable.</p>
+<p>Here I will just separate out numeric and categorical variables. And also take extract the target variable.</p>
 <div class="cell" data-execution_count="146">
 <div class="sourceCode cell-code" id="cb12"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>l_numeric <span class="op">=</span> [<span class="st">"age"</span>, <span class="st">"height(cm)"</span>, <span class="st">"weight(kg)"</span>, <span class="st">"waist(cm)"</span>, <span class="st">"eyesight(left)"</span>, <span class="st">"eyesight(right)"</span>, <span class="st">"systolic"</span>, <span class="st">"relaxation"</span>, <span class="st">"fasting blood sugar"</span>, <span class="st">"Cholesterol"</span>, <span class="st">"triglyceride"</span>, <span class="st">"HDL"</span>, <span class="st">"LDL"</span>, <span class="st">"hemoglobin"</span>, <span class="st">"serum creatinine"</span>, <span class="st">"AST"</span>, <span class="st">"ALT"</span>, <span class="st">"Gtp"</span>]</span>
 <span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -1431,8 +1445,13 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <section id="creating-transformers-for-data" class="level3">
 <h3 class="anchored" data-anchor-id="creating-transformers-for-data">Creating transformers for data</h3>
 <p>With that done, let’s create our preprocessors.</p>
-<p>For numerical values I will be using MinMaxScaler for one attempt and StandardScaler for the other.</p>
+<p>For numerical values I will be using MinMaxScaler for one attempt and StandardScaler for another.</p>
 <p>For categorical variables I will use OneHotEncoder, this means that hearing will be split into three distinct columns.</p>
+<p>What we will end up with are 2 preprocessors:</p>
+<ul>
+<li>One hot encoder + MinMax scaling</li>
+<li>One hot encoder + Standard scaling</li>
+</ul>
 <div class="cell" data-execution_count="147">
 <div class="sourceCode cell-code" id="cb13"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>minmax_scaler <span class="op">=</span> MinMaxScaler().set_output(transform<span class="op">=</span><span class="st">"pandas"</span>)</span>
 <span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>standard_scaler <span class="op">=</span> StandardScaler().set_output(transform<span class="op">=</span><span class="st">"pandas"</span>)</span>
@@ -1453,7 +1472,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>    ]</span>
 <span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<p>Let’s get us some training and testing data.</p>
+<p>Let’s get us some training and testing data for each of the column transformer.</p>
 <div class="cell" data-execution_count="148">
 <div class="sourceCode cell-code" id="cb14"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>Xmm <span class="op">=</span> minmax_prep.fit_transform(df)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>Xstd <span class="op">=</span> standard_prep.fit_transform(df) </span>
@@ -1461,25 +1480,21 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>Xmm_train, Xmm_test, ymm_train, ymm_test <span class="op">=</span> train_test_split(Xmm, target, test_size<span class="op">=</span><span class="fl">0.4</span>)</span>
 <span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>Xstd_train, Xstd_test, ystd_train, ystd_test <span class="op">=</span> train_test_split(Xstd, target, test_size<span class="op">=</span><span class="fl">0.4</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
-<div class="cell" data-execution_count="149">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>mm_log_reg <span class="op">=</span> <span class="va">None</span></span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>std_log_reg <span class="op">=</span> <span class="va">None</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
 </section>
 <section id="training-logistic-regression" class="level3">
 <h3 class="anchored" data-anchor-id="training-logistic-regression">Training Logistic regression</h3>
-<div class="cell" data-execution_count="150">
-<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>mm_log_reg <span class="op">=</span> LogisticRegressionCV(max_iter<span class="op">=</span><span class="dv">500</span>, cv<span class="op">=</span><span class="dv">5</span>)</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>mm_log_reg.fit(Xmm_train, ymm_train)</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>std_log_reg <span class="op">=</span> LogisticRegressionCV(max_iter<span class="op">=</span><span class="dv">500</span>, cv<span class="op">=</span><span class="dv">5</span>)</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>std_log_reg.fit(Xstd_train, ystd_train)</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using logistic regression: </span><span class="sc">{</span>mm_log_reg<span class="sc">.</span>score(Xmm_test, ymm_test)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using logistic regression: </span><span class="sc">{</span>std_log_reg<span class="sc">.</span>score(Xstd_test, ystd_test)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="149">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>mm_log_reg <span class="op">=</span> LogisticRegressionCV(max_iter<span class="op">=</span><span class="dv">500</span>, cv<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>mm_log_reg.fit(Xmm_train, ymm_train)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>std_log_reg <span class="op">=</span> LogisticRegressionCV(max_iter<span class="op">=</span><span class="dv">500</span>, cv<span class="op">=</span><span class="dv">5</span>)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>std_log_reg.fit(Xstd_train, ystd_train)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using logistic regression: </span><span class="sc">{</span>mm_log_reg<span class="sc">.</span>score(Xmm_test, ymm_test)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using logistic regression: </span><span class="sc">{</span>std_log_reg<span class="sc">.</span>score(Xstd_test, ystd_test)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Accuracy of MinMax scaling using logistic regression: 0.7494880322416816
-Accuracy of standard scaling using logistic regression: 0.7506348400203149</code></pre>
+<pre><code>Accuracy of MinMax scaling using logistic regression: 0.7492586706859549
+Accuracy of standard scaling using logistic regression: 0.7492914366224873</code></pre>
 </div>
 </div>
 <p>Here we can see that we have about the same accuracy for both minmax and standard scaling, with the score being ~0.749, and standard scaling is performing slightly worse.</p>
@@ -1488,20 +1503,20 @@ Accuracy of standard scaling using logistic regression: 0.7506348400203149</code
 <section id="random-forest-classifier" class="level3">
 <h3 class="anchored" data-anchor-id="random-forest-classifier">Random forest classifier</h3>
 <p>For random forest classifier I decided to use RandomizedSearch with cross validation to find optimal parameters.</p>
-<div class="cell" data-execution_count="151">
-<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a>parameters <span class="op">=</span> {<span class="st">'n_estimators'</span> : np.arange(<span class="dv">10</span>,<span class="dv">100</span>)}</span>
-<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>mm_forest <span class="op">=</span> RandomizedSearchCV(RandomForestClassifier(), parameters)</span>
-<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>mm_forest.fit(Xmm_train, ymm_train)</span>
-<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>std_forest <span class="op">=</span> RandomizedSearchCV(RandomForestClassifier(), parameters)</span>
-<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>std_forest.fit(Xstd_train, ystd_train)</span>
-<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using random forest: </span><span class="sc">{</span>mm_forest<span class="sc">.</span>best_score_<span class="sc">}</span><span class="ss"> with estimators </span><span class="sc">{</span>mm_forest<span class="sc">.</span>best_estimator_<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using random forest: </span><span class="sc">{</span>std_forest<span class="sc">.</span>best_score_<span class="sc">}</span><span class="ss"> with estimators </span><span class="sc">{</span>std_forest<span class="sc">.</span>best_estimator_<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="150">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>parameters <span class="op">=</span> {<span class="st">'n_estimators'</span> : np.arange(<span class="dv">10</span>,<span class="dv">100</span>)}</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>mm_forest <span class="op">=</span> RandomizedSearchCV(RandomForestClassifier(), parameters)</span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>mm_forest.fit(Xmm_train, ymm_train)</span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a>std_forest <span class="op">=</span> RandomizedSearchCV(RandomForestClassifier(), parameters)</span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>std_forest.fit(Xstd_train, ystd_train)</span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using random forest: </span><span class="sc">{</span>mm_forest<span class="sc">.</span>best_score_<span class="sc">}</span><span class="ss"> with estimators </span><span class="sc">{</span>mm_forest<span class="sc">.</span>best_estimator_<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb17-10"><a href="#cb17-10" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using random forest: </span><span class="sc">{</span>std_forest<span class="sc">.</span>best_score_<span class="sc">}</span><span class="ss"> with estimators </span><span class="sc">{</span>std_forest<span class="sc">.</span>best_estimator_<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Accuracy of MinMax scaling using random forest: 0.7738021437958533 with estimators RandomForestClassifier(n_estimators=93)
-Accuracy of standard scaling using random forest: 0.7724259075376918 with estimators RandomForestClassifier(n_estimators=99)</code></pre>
+<pre><code>Accuracy of MinMax scaling using random forest: 0.7715849563816318 with estimators RandomForestClassifier(n_estimators=87)
+Accuracy of standard scaling using random forest: 0.7722949091636209 with estimators RandomForestClassifier(n_estimators=99)</code></pre>
 </div>
 </div>
 <p>For random forest classifier we can see that the accuracy has risen compared to logistic regression. MinMax scaling is still performing very slightly better than standard scaling.</p>
@@ -1509,17 +1524,17 @@ Accuracy of standard scaling using random forest: 0.7724259075376918 with estima
 <section id="svm" class="level3">
 <h3 class="anchored" data-anchor-id="svm">SVM</h3>
 <p>While I have planned to compare several SVM kernels, given the sheer size of my dataset and severe limitations on time I can spend on this, taking into account rendering the document, I will use only RBF kernel, which has performed best in my testing.</p>
-<div class="cell" data-execution_count="152">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a>mm_svm <span class="op">=</span> SVC(kernel<span class="op">=</span><span class="st">'rbf'</span>, gamma<span class="op">=</span><span class="st">'scale'</span>)</span>
-<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>std_svm <span class="op">=</span> SVC(kernel<span class="op">=</span><span class="st">'rbf'</span>, gamma<span class="op">=</span><span class="st">'scale'</span>)</span>
-<span id="cb20-3"><a href="#cb20-3" aria-hidden="true" tabindex="-1"></a>mm_svm.fit(Xmm_train, ymm_train)</span>
-<span id="cb20-4"><a href="#cb20-4" aria-hidden="true" tabindex="-1"></a>std_svm.fit(Xstd_train, ystd_train)</span>
-<span id="cb20-5"><a href="#cb20-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb20-6"><a href="#cb20-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using SVM: </span><span class="sc">{</span>mm_svm<span class="sc">.</span>score(Xmm_test, ymm_test)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb20-7"><a href="#cb20-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using SVM: </span><span class="sc">{</span>std_svm<span class="sc">.</span>score(Xstd_test, ystd_test)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="151">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a>mm_svm <span class="op">=</span> SVC(kernel<span class="op">=</span><span class="st">'rbf'</span>, gamma<span class="op">=</span><span class="st">'scale'</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>std_svm <span class="op">=</span> SVC(kernel<span class="op">=</span><span class="st">'rbf'</span>, gamma<span class="op">=</span><span class="st">'scale'</span>)</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>mm_svm.fit(Xmm_train, ymm_train)</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>std_svm.fit(Xstd_train, ystd_train)</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb19-6"><a href="#cb19-6" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using SVM: </span><span class="sc">{</span>mm_svm<span class="sc">.</span>score(Xmm_test, ymm_test)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb19-7"><a href="#cb19-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using SVM: </span><span class="sc">{</span>std_svm<span class="sc">.</span>score(Xstd_test, ystd_test)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Accuracy of MinMax scaling using SVM: 0.7680007863824768
-Accuracy of standard scaling using SVM: 0.7721129114172905</code></pre>
+<pre><code>Accuracy of MinMax scaling using SVM: 0.7701305722570816
+Accuracy of standard scaling using SVM: 0.7725388685922115</code></pre>
 </div>
 </div>
 <p>If we look at results here, standard scaling is finally outperforming minmax and by non-negligable ammount.</p>
@@ -1527,41 +1542,41 @@ Accuracy of standard scaling using SVM: 0.7721129114172905</code></pre>
 <section id="sgd-classifier" class="level3">
 <h3 class="anchored" data-anchor-id="sgd-classifier">SGD Classifier</h3>
 <p>One thing that apparently performs pretty well on large samples is SGD Classifier, so I would like to test it here.</p>
-<div class="cell" data-execution_count="153">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>mm_sgd <span class="op">=</span> SGDClassifier()</span>
-<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>std_sgd <span class="op">=</span> SGDClassifier()</span>
-<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>mm_sgd.fit(Xmm_train, ymm_train)</span>
-<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>std_sgd.fit(Xstd_train, ystd_train)</span>
-<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using SGD: </span><span class="sc">{</span>mm_sgd<span class="sc">.</span>score(Xmm_test, ymm_test)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using SGD: </span><span class="sc">{</span>std_sgd<span class="sc">.</span>score(Xstd_test, ystd_test)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="152">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>mm_sgd <span class="op">=</span> SGDClassifier()</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>std_sgd <span class="op">=</span> SGDClassifier()</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>mm_sgd.fit(Xmm_train, ymm_train)</span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>std_sgd.fit(Xstd_train, ystd_train)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using SGD: </span><span class="sc">{</span>mm_sgd<span class="sc">.</span>score(Xmm_test, ymm_test)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using SGD: </span><span class="sc">{</span>std_sgd<span class="sc">.</span>score(Xstd_test, ystd_test)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Accuracy of MinMax scaling using SGD: 0.7537803699274235
-Accuracy of standard scaling using SGD: 0.7530431363554448</code></pre>
+<pre><code>Accuracy of MinMax scaling using SGD: 0.7550418584839201
+Accuracy of standard scaling using SGD: 0.7415095266960468</code></pre>
 </div>
 </div>
 <p>By itself SGD doesn’t really perform that well. Let’s try to use kernel approximation with RBF sampler, since it RBF performed so well with SVM</p>
-<div class="cell" data-execution_count="154">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>mm_sgd_rbf <span class="op">=</span> SGDClassifier()</span>
-<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>std_sgd_rbf <span class="op">=</span> SGDClassifier()</span>
-<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-4"><a href="#cb24-4" aria-hidden="true" tabindex="-1"></a>sampler <span class="op">=</span> RBFSampler()</span>
-<span id="cb24-5"><a href="#cb24-5" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-6"><a href="#cb24-6" aria-hidden="true" tabindex="-1"></a>Xmm_rbf <span class="op">=</span> sampler.fit_transform(Xmm)</span>
-<span id="cb24-7"><a href="#cb24-7" aria-hidden="true" tabindex="-1"></a>Xstd_rbf <span class="op">=</span> sampler.fit_transform(Xstd)</span>
-<span id="cb24-8"><a href="#cb24-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-9"><a href="#cb24-9" aria-hidden="true" tabindex="-1"></a>Xmm_rbf_train, Xmm_rbf_test, ymm_rbf_train, ymm_rbf_test <span class="op">=</span> train_test_split(Xmm, target, test_size<span class="op">=</span><span class="fl">0.4</span>)</span>
-<span id="cb24-10"><a href="#cb24-10" aria-hidden="true" tabindex="-1"></a>Xstd_rbf_train, Xstd_rbf_test, ystd_rbf_train, ystd_rbf_test <span class="op">=</span> train_test_split(Xstd, target, test_size<span class="op">=</span><span class="fl">0.4</span>)</span>
-<span id="cb24-11"><a href="#cb24-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-12"><a href="#cb24-12" aria-hidden="true" tabindex="-1"></a>mm_sgd_rbf.fit(Xmm_rbf_train, ymm_rbf_train)</span>
-<span id="cb24-13"><a href="#cb24-13" aria-hidden="true" tabindex="-1"></a>std_sgd_rbf.fit(Xstd_rbf_train, ystd_rbf_train)</span>
-<span id="cb24-14"><a href="#cb24-14" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb24-15"><a href="#cb24-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using SGD with RBF kernel: </span><span class="sc">{</span>mm_sgd_rbf<span class="sc">.</span>score(Xmm_rbf_test, ymm_rbf_test)<span class="sc">}</span><span class="ss">"</span>)</span>
-<span id="cb24-16"><a href="#cb24-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using SGD with RBF kernel: </span><span class="sc">{</span>std_sgd_rbf<span class="sc">.</span>score(Xstd_rbf_test, ystd_rbf_test)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="153">
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a>mm_sgd_rbf <span class="op">=</span> SGDClassifier()</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>std_sgd_rbf <span class="op">=</span> SGDClassifier()</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>sampler <span class="op">=</span> RBFSampler()</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-6"><a href="#cb23-6" aria-hidden="true" tabindex="-1"></a>Xmm_rbf <span class="op">=</span> sampler.fit_transform(Xmm)</span>
+<span id="cb23-7"><a href="#cb23-7" aria-hidden="true" tabindex="-1"></a>Xstd_rbf <span class="op">=</span> sampler.fit_transform(Xstd)</span>
+<span id="cb23-8"><a href="#cb23-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-9"><a href="#cb23-9" aria-hidden="true" tabindex="-1"></a>Xmm_rbf_train, Xmm_rbf_test, ymm_rbf_train, ymm_rbf_test <span class="op">=</span> train_test_split(Xmm, target, test_size<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb23-10"><a href="#cb23-10" aria-hidden="true" tabindex="-1"></a>Xstd_rbf_train, Xstd_rbf_test, ystd_rbf_train, ystd_rbf_test <span class="op">=</span> train_test_split(Xstd, target, test_size<span class="op">=</span><span class="fl">0.4</span>)</span>
+<span id="cb23-11"><a href="#cb23-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-12"><a href="#cb23-12" aria-hidden="true" tabindex="-1"></a>mm_sgd_rbf.fit(Xmm_rbf_train, ymm_rbf_train)</span>
+<span id="cb23-13"><a href="#cb23-13" aria-hidden="true" tabindex="-1"></a>std_sgd_rbf.fit(Xstd_rbf_train, ystd_rbf_train)</span>
+<span id="cb23-14"><a href="#cb23-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb23-15"><a href="#cb23-15" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of MinMax scaling using SGD with RBF kernel: </span><span class="sc">{</span>mm_sgd_rbf<span class="sc">.</span>score(Xmm_rbf_test, ymm_rbf_test)<span class="sc">}</span><span class="ss">"</span>)</span>
+<span id="cb23-16"><a href="#cb23-16" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="ss">f"Accuracy of standard scaling using SGD with RBF kernel: </span><span class="sc">{</span>std_sgd_rbf<span class="sc">.</span>score(Xstd_rbf_test, ystd_rbf_test)<span class="sc">}</span><span class="ss">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
-<pre><code>Accuracy of MinMax scaling using SGD with RBF kernel: 0.7503399465915235
-Accuracy of standard scaling using SGD with RBF kernel: 0.7518307967037468</code></pre>
+<pre><code>Accuracy of MinMax scaling using SGD with RBF kernel: 0.7526007962122577
+Accuracy of standard scaling using SGD with RBF kernel: 0.7516178181162864</code></pre>
 </div>
 </div>
 <p>There was an attempt, maybe by testing more kernel approximations I could get somewhere, but I will leave that be.</p>
@@ -1594,15 +1609,15 @@ Accuracy of standard scaling using SGD with RBF kernel: 0.7518307967037468</code
 <section id="submission-of-my-predictions" class="level2">
 <h2 class="anchored" data-anchor-id="submission-of-my-predictions">Submission of my predictions</h2>
 <p>Data to classify for the submission is in <em>test.csv</em> file, so let’s get the data in.</p>
-<div class="cell" data-execution_count="155">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a>test_data <span class="op">=</span> pd.read_csv(<span class="st">'Smokers/test.csv'</span>, index_col<span class="op">=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="154">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a>test_data <span class="op">=</span> pd.read_csv(<span class="st">'Smokers/test.csv'</span>, index_col<span class="op">=</span><span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>Since submission is in format [id, smoking] let’s check to make sure that the id’s match up</p>
-<div class="cell" data-execution_count="156">
-<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Head"</span>)</span>
-<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(test_data.head(), <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>)</span>
-<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Tail"</span>)</span>
-<span id="cb27-4"><a href="#cb27-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(test_data.tail(), <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="155">
+<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Head"</span>)</span>
+<span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(test_data.head(), <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>)</span>
+<span id="cb26-3"><a href="#cb26-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(<span class="st">"Tail"</span>)</span>
+<span id="cb26-4"><a href="#cb26-4" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(test_data.tail(), <span class="st">"</span><span class="ch">\n</span><span class="st">"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>Head
         age  height(cm)  weight(kg)  waist(cm)  eyesight(left)  \
@@ -1678,26 +1693,26 @@ id
 </div>
 <p>Id’s are matching up, so we can proceed to pre-preprocessing.</p>
 <p>The only thing I will need to do here is to merge hearing (left) and (right) in the same way I did in the training part. Then Sklearn can take the wheel.</p>
-<div class="cell" data-execution_count="157">
-<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>idx <span class="op">=</span> [<span class="st">"Both hearing"</span>, <span class="st">"One deaf"</span>, <span class="st">"Both deaf"</span>]</span>
-<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>hear <span class="op">=</span> test_data.loc[:, [<span class="st">"hearing(left)"</span>, <span class="st">"hearing(right)"</span>]]</span>
-<span id="cb29-3"><a href="#cb29-3" aria-hidden="true" tabindex="-1"></a>hearing <span class="op">=</span> []</span>
-<span id="cb29-4"><a href="#cb29-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, row <span class="kw">in</span> hear.iterrows():</span>
-<span id="cb29-5"><a href="#cb29-5" aria-hidden="true" tabindex="-1"></a>    hearing.append(idx[row.iloc[<span class="dv">0</span>] <span class="op">+</span> row.iloc[<span class="dv">1</span>] <span class="op">-</span> <span class="dv">2</span>])</span>
-<span id="cb29-6"><a href="#cb29-6" aria-hidden="true" tabindex="-1"></a>test_data.loc[:, <span class="st">"hearing"</span>] <span class="op">=</span> hearing</span>
-<span id="cb29-7"><a href="#cb29-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb29-8"><a href="#cb29-8" aria-hidden="true" tabindex="-1"></a>test_data[<span class="st">"hearing"</span>] <span class="op">=</span> test_data[<span class="st">"hearing"</span>].<span class="bu">map</span>({<span class="st">"Both deaf"</span>: <span class="dv">0</span>, <span class="st">"One deaf"</span>: <span class="dv">1</span>, <span class="st">"Both hearing"</span>: <span class="dv">2</span>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="156">
+<div class="sourceCode cell-code" id="cb28"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>idx <span class="op">=</span> [<span class="st">"Both hearing"</span>, <span class="st">"One deaf"</span>, <span class="st">"Both deaf"</span>]</span>
+<span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>hear <span class="op">=</span> test_data.loc[:, [<span class="st">"hearing(left)"</span>, <span class="st">"hearing(right)"</span>]]</span>
+<span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>hearing <span class="op">=</span> []</span>
+<span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a><span class="cf">for</span> index, row <span class="kw">in</span> hear.iterrows():</span>
+<span id="cb28-5"><a href="#cb28-5" aria-hidden="true" tabindex="-1"></a>    hearing.append(idx[row.iloc[<span class="dv">0</span>] <span class="op">+</span> row.iloc[<span class="dv">1</span>] <span class="op">-</span> <span class="dv">2</span>])</span>
+<span id="cb28-6"><a href="#cb28-6" aria-hidden="true" tabindex="-1"></a>test_data.loc[:, <span class="st">"hearing"</span>] <span class="op">=</span> hearing</span>
+<span id="cb28-7"><a href="#cb28-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb28-8"><a href="#cb28-8" aria-hidden="true" tabindex="-1"></a>test_data[<span class="st">"hearing"</span>] <span class="op">=</span> test_data[<span class="st">"hearing"</span>].<span class="bu">map</span>({<span class="st">"Both deaf"</span>: <span class="dv">0</span>, <span class="st">"One deaf"</span>: <span class="dv">1</span>, <span class="st">"Both hearing"</span>: <span class="dv">2</span>})</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>So now we just transform our data and feed it to out trained SVM classifier</p>
-<div class="cell" data-execution_count="158">
-<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> standard_prep.fit_transform(test_data)</span>
-<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>prediction <span class="op">=</span> std_svm.predict(X)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="157">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a>X <span class="op">=</span> standard_prep.fit_transform(test_data)</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>prediction <span class="op">=</span> std_svm.predict(X)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <p>After getting prediction from the SVM model it’s time to put it into a dataframe and export it as an csv file.</p>
-<div class="cell" data-execution_count="159">
-<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a>test_data[<span class="st">"smoking"</span>] <span class="op">=</span> prediction</span>
-<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> test_data[<span class="st">"smoking"</span>]</span>
-<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(output.head())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell" data-execution_count="158">
+<div class="sourceCode cell-code" id="cb30"><pre class="sourceCode python code-with-copy"><code class="sourceCode python"><span id="cb30-1"><a href="#cb30-1" aria-hidden="true" tabindex="-1"></a>test_data[<span class="st">"smoking"</span>] <span class="op">=</span> prediction</span>
+<span id="cb30-2"><a href="#cb30-2" aria-hidden="true" tabindex="-1"></a>output <span class="op">=</span> test_data[<span class="st">"smoking"</span>]</span>
+<span id="cb30-3"><a href="#cb30-3" aria-hidden="true" tabindex="-1"></a><span class="bu">print</span>(output.head())</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>id
 159256    1
@@ -1708,9 +1723,9 @@ id
 Name: smoking, dtype: int64</code></pre>
 </div>
 </div>
-<div class="sourceCode" id="cb33"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
-<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>output.to_csv(<span class="st">'Smokers/my_submission.csv'</span>)</span>
-<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode" id="cb32"><pre class="sourceCode markdown code-with-copy"><code class="sourceCode markdown"><span id="cb32-1"><a href="#cb32-1" aria-hidden="true" tabindex="-1"></a><span class="in">```{python}</span></span>
+<span id="cb32-2"><a href="#cb32-2" aria-hidden="true" tabindex="-1"></a>output.to_csv(<span class="st">'Smokers/my_submission.csv'</span>)</span>
+<span id="cb32-3"><a href="#cb32-3" aria-hidden="true" tabindex="-1"></a><span class="in">```</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </section>
 <section id="results" class="level2">
 <h2 class="anchored" data-anchor-id="results">Results</h2>
